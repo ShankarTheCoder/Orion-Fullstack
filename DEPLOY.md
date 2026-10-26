@@ -78,10 +78,10 @@ instruction — set them first, then run the seed again.
 - **Direct links work:** `frontend/vercel.json` (and the copy at the repo
   root) rewrites all routes to `index.html`, so typing `/products` or
   `/login` directly no longer returns a Vercel 404.
-- **Uploaded product images** are stored on the backend server's disk
-  (`backend/uploads/`). On Render's free tier, disk files may be lost when
-  the service restarts or redeploys. Cloudinary is the documented swap point
-  in `backend/src/utils/imageStorage.js` for persistent image storage later.
+- **Uploaded product images and documents** are stored directly inside MongoDB
+  as binary data (via the `Media` collection). This means no external cloud
+  storage (like AWS S3 or Cloudinary) is needed, and files never disappear
+  on Vercel serverless or server restarts.
 - **Free-tier cold starts:** Render's free service sleeps after inactivity,
   so the first request after a pause can take ~30–60 seconds. This is normal
   and not an error in the app.

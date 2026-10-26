@@ -1,12 +1,12 @@
 const service = require('./products.service');
 const { getPagination, paginated } = require('../../utils/pagination');
-const { uploadProductImage, toImageUrl } = require('../../utils/imageStorage');
+const { uploadProductImage, saveProductImage } = require('../../utils/imageStorage');
 
 // POST /api/v1/products/upload-image (admin) — multipart field "image",
-// images only, max 5 MB. Returns { success: true, imageUrl } where imageUrl
-// is a /uploads/products/<file> path served statically by the app.
+// images only, max 5 MB. Stores file binary directly in MongoDB and returns
+// { success: true, imageUrl: '/uploads/products/<file>' }.
 function uploadImage(req, res) {
-  uploadProductImage.single('image')(req, res, (err) => {
+  uploadProductImage.single('image')(req, res, async (err) => {
     if (err) {
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({ success: false, message: 'Image must be up to 5 MB' });
@@ -16,7 +16,12 @@ function uploadImage(req, res) {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'An image file is required (form field: image)' });
     }
-    return res.json({ success: true, imageUrl: toImageUrl(req.file) });
+    try {
+      const imageUrl = await saveProductImage(req.file);
+      return res.json({ success: true, imageUrl });
+    } catch (saveErr) {
+      return res.status(500).json({ success: false, message: saveErr.message || 'Failed to save image' });
+    }
   });
 }
 

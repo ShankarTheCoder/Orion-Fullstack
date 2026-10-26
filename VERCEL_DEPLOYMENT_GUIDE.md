@@ -136,10 +136,11 @@ Now that you have both URLs:
 
 ## Important Vercel Serverless Details
 
-### 1. Ephemeral File Uploads
-- Vercel functions run in an ephemeral serverless container where the filesystem (outside `/tmp`) is read-only and files do not persist across function invocations.
-- Product images uploaded to disk (`backend/uploads/`) will disappear when the function goes idle.
-- **Recommended for Production:** Use Cloudinary or AWS S3 for persistent image uploads. The backend is already architected with a single swap point in [`backend/src/utils/imageStorage.js`](file:///Users/shivshankarpandit/Desktop/orion-full-stack/backend/src/utils/imageStorage.js).
+### 1. Database-Backed File & Image Uploads (No S3 / Cloudinary Required)
+- **Zero External Dependencies:** You **do not** need AWS S3, Cloudinary, or any third-party storage provider.
+- **Direct MongoDB Storage:** All uploaded product images and documents are stored directly inside MongoDB as binary data via the [`Media`](backend/src/models/Media.model.js) collection.
+- **Serverless Safe on Vercel:** Because files are stored in MongoDB Atlas, uploads survive Vercel serverless container cold starts and new deployments with 100% data persistence.
+- **Automatic Caching & Serving:** The backend serves stored media directly via `/uploads/products/:filename` or `/api/v1/media/:filename` with long-term caching (`Cache-Control: public, max-age=31536000, immutable`) and proper CORS headers.
 
 ### 2. MongoDB Atlas Whitelist
 - If your backend returns `500 Server Error` or times out, verify in **MongoDB Atlas** that:

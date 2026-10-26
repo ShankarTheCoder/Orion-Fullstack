@@ -107,4 +107,23 @@ describe('product image upload', () => {
     expect(detail.status).toBe(200);
     expect(detail.body.data.imageUrl).toBe(imageUrl);
   });
+
+  test('uploaded image is stored in MongoDB and serves even if local disk copy is deleted', async () => {
+    const Media = require('../src/models/Media.model');
+    const filename = imageUrl.split('/').pop();
+    const mediaDoc = await Media.findOne({ filename });
+    expect(mediaDoc).toBeTruthy();
+    expect(mediaDoc.mimeType).toBe('image/png');
+    expect(mediaDoc.data).toBeInstanceOf(Buffer);
+
+    // Simulate Vercel ephemeral reset by deleting disk copy if present
+    const diskPath = path.join(__dirname, '..', 'uploads', 'products', filename);
+    try { fs.unlinkSync(diskPath); } catch { /* ignore */ }
+
+    // Should still serve 200 directly from MongoDB!
+    const gotFromDB = await api().get(imageUrl);
+    expect(gotFromDB.status).toBe(200);
+    expect(gotFromDB.headers['content-type']).toMatch(/image\/png/);
+    expect(gotFromDB.body).toEqual(PNG);
+  });
 });

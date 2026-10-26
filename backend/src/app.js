@@ -23,14 +23,36 @@ app.use((req, res, next) => {
   helmet()(req, res, next);
 });
 
+const Media = require('./models/Media.model');
+
 app.use(cors({
   origin: config.CLIENT_URL ? config.CLIENT_URL.split(',') : true,
   credentials: true,
 }));
 app.use(express.json({ limit: '100kb' }));
-// Uploaded product images (backend/uploads) served publicly at /uploads/*.
-// CORP is relaxed for this path only so the storefront on another origin
-// (the Vite dev server) can embed the images.
+
+// Serve uploaded images and documents directly from MongoDB.
+// Survives Vercel serverless ephemeral environments where local disk resets.
+// Falls back to static backend/uploads for pre-seeded assets.
+app.get(['/uploads/:folder/:filename', '/uploads/:filename', '/api/v1/media/:filename'], async (req, res, next) => {
+  try {
+    const { filename, folder } = req.params;
+    const filter = { filename };
+    if (folder) filter.folder = folder;
+
+    const doc = await Media.findOne(filter);
+    if (doc && doc.data) {
+      res.setHeader('Content-Type', doc.mimeType || 'application/octet-stream');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      return res.send(doc.data);
+    }
+    return next();
+  } catch (err) {
+    return next();
+  }
+});
+
 app.use('/uploads', (req, res, next) => { res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); next(); },
   express.static(path.join(__dirname, '..', 'uploads')));
 if (config.NODE_ENV !== 'test') app.use(morgan('dev'));
