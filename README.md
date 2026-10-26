@@ -22,17 +22,11 @@ Guests have **no account and no cart** — after registering and verifying
 their email they become customers. Admin permissions are enforced by
 Express middleware on the server, never by hiding pages.
 
-## Deployment (live site)
+## Deployment Guides
 
-The frontend is deployed on Vercel at https://orion-chi-nine.vercel.app/.
-To make the live site work end-to-end, the backend must be hosted at a
-public URL and the frontend pointed at it — the default
-`VITE_API_URL=http://localhost:5000/api/v1` only works on a developer's own
-computer, and on Vercel it causes "Failed to fetch" with no products listed.
-Follow the step-by-step guide in **[DEPLOY.md](DEPLOY.md)** (Render backend
-→ run the seed → set `VITE_API_URL` in Vercel → redeploy → admin adds
-categories and products). Note the database starts empty by design: products
-appear only after the admin adds them.
+- **Deploy Both on Vercel (Frontend + Backend):** Follow the step-by-step guide in **[VERCEL_DEPLOYMENT_GUIDE.md](VERCEL_DEPLOYMENT_GUIDE.md)** to deploy both the React frontend and the Express serverless backend on Vercel.
+- **Alternative Hybrid Setup (Vercel Frontend + Render Backend):** Follow **[DEPLOY.md](DEPLOY.md)**.
+
 
 ## Run it (both apps)
 

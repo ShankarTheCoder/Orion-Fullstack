@@ -91,6 +91,15 @@ customer → customer dashboard). Login always checks the password against
 the database; there is no env-based bypass. (`POST /auth/admin/login`
 remains only as a backwards-compatible alias used by older tests.)
 
+## API Documentation (Swagger / OpenAPI)
+
+Interactive Swagger UI and OpenAPI 3.0 specification endpoints:
+
+- **Interactive Swagger UI:** `http://localhost:5001/api/v1/docs` (or `/api/docs`, `/docs`)
+- **OpenAPI JSON Spec:** `http://localhost:5001/api/v1/docs.json` (or `/api/docs.json`)
+
+The documentation features interactive "Authorize" support (JWT Bearer tokens), complete request/response schemas, filter parameters, and response status codes for all 11 modules.
+
 ## API overview (base `/api/v1`)
 
 | Area | Endpoints |
@@ -106,7 +115,7 @@ remains only as a backwards-compatible alias used by older tests.)
 | Payments | `GET /payments/my`, `POST /payments/verify` (mock gateway) |
 | Feedback | `GET /feedback`, `POST /feedback` |
 | Contact | `POST /contact` |
-| Admin | `GET /admin/dashboard`, `GET /admin/customers`, `GET /admin/customers/:id`, `PATCH /admin/customers/:id/status`, `GET /admin/orders`, `PUT /admin/orders/:id/status`, `GET /admin/payments`, `GET /admin/payments/:id`, `GET/DELETE /admin/feedback(/:id)`, `GET /admin/contact-requests`, `PATCH /admin/contact-requests/:id/resolve`, `DELETE /admin/contact-requests/:id` |
+| Admin | `GET /admin/dashboard`, customers: `GET/POST /admin/customers`, `GET/PUT/DELETE /admin/customers/:id`, `PATCH /admin/customers/:id/status`, `GET /admin/orders`, `PUT /admin/orders/:id/status`, `GET /admin/payments`, `GET /admin/payments/:id`, `GET/DELETE /admin/feedback(/:id)`, `GET /admin/contact-requests`, `PATCH /admin/contact-requests/:id/resolve`, `DELETE /admin/contact-requests/:id` |
 
 **Business rules enforced server-side:** order totals recalculated from DB
 prices (delivery ₹40, free above ₹499 — client totals are never trusted);

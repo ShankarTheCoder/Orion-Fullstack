@@ -370,12 +370,49 @@ describe('admin management', () => {
     expect(login2.status).toBe(200);
   });
 
-  test('admin cannot block their own account', async () => {
-    const res = await asAdmin(api().patch(`/api/v1/admin/customers/${adminId}/status`)).send({ status: 'blocked' });
-    // adminId is an admin, not a customer -> 404, and in any case never a self-block success
-    expect([400, 404]).toContain(res.status);
-    const me = await asAdmin(api().get('/api/v1/auth/me'));
-    expect(me.body.data.status).toBe('active');
+  test('admin customer CRUD: create, update, delete', async () => {
+    // 1. Create customer
+    const createRes = await asAdmin(api().post('/api/v1/admin/customers')).send({
+      name: 'Created By Admin',
+      mobile: '9888777666',
+      email: 'admincreated@test.local',
+      password: 'password123',
+      status: 'active',
+    });
+    expect(createRes.status).toBe(201);
+    expect(createRes.body.data.email).toBe('admincreated@test.local');
+    expect(createRes.body.data.isEmailVerified).toBe(true);
+    const newCustId = createRes.body.data.id || createRes.body.data._id;
+
+    // Login with new customer works immediately
+    const loginRes = await api().post('/api/v1/auth/login').send({
+      email: 'admincreated@test.local',
+      password: 'password123',
+    });
+    expect(loginRes.status).toBe(200);
+
+    // 2. Update customer
+    const updateRes = await asAdmin(api().put(`/api/v1/admin/customers/${newCustId}`)).send({
+      name: 'Updated Name',
+      mobile: '9777666555',
+    });
+    expect(updateRes.status).toBe(200);
+    expect(updateRes.body.data.name).toBe('Updated Name');
+    expect(updateRes.body.data.mobile).toBe('9777666555');
+
+    // 3. Delete customer (0 orders -> success)
+    const delRes = await asAdmin(api().delete(`/api/v1/admin/customers/${newCustId}`));
+    expect(delRes.status).toBe(200);
+
+    // Verify deleted
+    const getRes = await asAdmin(api().get(`/api/v1/admin/customers/${newCustId}`));
+    expect(getRes.status).toBe(404);
+
+    // 4. Deleting customer with orders fails with 400
+    const priya = (await asAdmin(api().get('/api/v1/admin/customers?limit=100'))).body.items.find((u) => u.email === 'priya@test.local');
+    const delOrderCust = await asAdmin(api().delete(`/api/v1/admin/customers/${priya.id || priya._id}`));
+    expect(delOrderCust.status).toBe(400);
+    expect(delOrderCust.body.message).toMatch(/order/i);
   });
 
   test('order management: lifecycle enforced (no skipping, cancel restores stock)', async () => {

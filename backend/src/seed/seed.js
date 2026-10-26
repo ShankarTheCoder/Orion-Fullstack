@@ -34,9 +34,13 @@ const ADMIN = {
 // re-seed always restores a working admin login.
 async function upsertAdmin() {
   const passwordHash = await User.hashPassword(ADMIN.password);
-  const existing = await User.findOne({ email: ADMIN.email });
+  const existing = await User.findOne({
+    $or: [{ email: ADMIN.email }, { role: 'admin' }, { mobile: '9999999999' }],
+  });
   if (existing) {
     existing.name = ADMIN.name;
+    existing.email = ADMIN.email;
+    existing.mobile = '9999999999';
     existing.passwordHash = passwordHash;
     existing.role = 'admin';
     existing.isEmailVerified = true;

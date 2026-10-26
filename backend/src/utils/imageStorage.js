@@ -14,7 +14,11 @@ const multer = require('multer');
 
 const UPLOAD_ROOT = path.join(__dirname, '..', '..', 'uploads'); // backend/uploads
 const PRODUCT_DIR = path.join(UPLOAD_ROOT, 'products');
-fs.mkdirSync(PRODUCT_DIR, { recursive: true });
+try {
+  fs.mkdirSync(PRODUCT_DIR, { recursive: true });
+} catch {
+  // On serverless platforms (e.g. Vercel), filesystems outside /tmp are read-only
+}
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
 const MIME_TO_EXT = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' };

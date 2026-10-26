@@ -9,6 +9,8 @@ const Order = require('../../models/Order.model');
 const Payment = require('../../models/Payment.model');
 const Feedback = require('../../models/Feedback.model');
 const ContactRequest = require('../../models/ContactRequest.model');
+const Cart = require('../../models/Cart.model');
+const Address = require('../../models/Address.model');
 const ApiError = require('../../utils/ApiError');
 
 async function dashboardStats() {
@@ -102,8 +104,86 @@ async function setCustomerStatus(adminUser, customerId, status) {
   return user.toSafeJSON();
 }
 
+async function createCustomer({ name, mobile, email, password, status = 'active' }) {
+  const normalizedEmail = email.toLowerCase().trim();
+  const existing = await User.findOne({ $or: [{ email: normalizedEmail }, { mobile: mobile.trim() }] });
+  if (existing) {
+    if (existing.email === normalizedEmail) throw new ApiError(400, 'A customer with this email already exists');
+    throw new ApiError(400, 'A customer with this mobile number already exists');
+  }
+  const passwordHash = await User.hashPassword(password);
+  const user = await User.create({
+    name: name.trim(),
+    mobile: mobile.trim(),
+    email: normalizedEmail,
+    passwordHash,
+    role: 'customer',
+    status: status || 'active',
+    isEmailVerified: true,
+  });
+  return user.toSafeJSON();
+}
+
+async function updateCustomer(adminUser, customerId, data) {
+  if (String(adminUser._id) === String(customerId)) {
+    throw new ApiError(400, 'Admins cannot edit their account through customer management');
+  }
+  const user = await User.findById(customerId);
+  if (!user || user.role !== 'customer') throw new ApiError(404, 'Customer not found');
+
+  if (data.email) {
+    const normalizedEmail = data.email.toLowerCase().trim();
+    if (normalizedEmail !== user.email) {
+      const emailExists = await User.findOne({ email: normalizedEmail, _id: { $ne: customerId } });
+      if (emailExists) throw new ApiError(400, 'A customer with this email already exists');
+      user.email = normalizedEmail;
+    }
+  }
+  if (data.mobile) {
+    const cleanMobile = data.mobile.trim();
+    if (cleanMobile !== user.mobile) {
+      const mobileExists = await User.findOne({ mobile: cleanMobile, _id: { $ne: customerId } });
+      if (mobileExists) throw new ApiError(400, 'A customer with this mobile number already exists');
+      user.mobile = cleanMobile;
+    }
+  }
+  if (data.name) user.name = data.name.trim();
+  if (data.status) user.status = data.status;
+  if (data.password) {
+    user.passwordHash = await User.hashPassword(data.password);
+  }
+
+  await user.save();
+  return user.toSafeJSON();
+}
+
+async function deleteCustomer(adminUser, customerId) {
+  if (String(adminUser._id) === String(customerId)) {
+    throw new ApiError(400, 'You cannot delete your own admin account');
+  }
+  const user = await User.findById(customerId);
+  if (!user || user.role !== 'customer') throw new ApiError(404, 'Customer not found');
+
+  const orderCount = await Order.countDocuments({ user: customerId });
+  if (orderCount > 0) {
+    throw new ApiError(
+      400,
+      `Cannot delete customer with existing order history (${orderCount} order(s)). To prevent login, please block the customer instead.`
+    );
+  }
+
+  await Promise.all([
+    User.findByIdAndDelete(customerId),
+    Cart.deleteMany({ user: customerId }),
+    Address.deleteMany({ user: customerId }),
+  ]);
+
+  return { message: 'Customer deleted successfully' };
+}
+
 module.exports = {
   dashboardStats, listCustomers, getCustomerDetail, setCustomerStatus,
+  createCustomer, updateCustomer, deleteCustomer,
   // re-exported model access for the admin controller's simple list endpoints
   models: { Payment, Feedback, ContactRequest },
 };

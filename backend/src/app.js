@@ -9,11 +9,20 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const config = require('./config/env');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
-app.use(helmet());
+// Protect all routes with Helmet, bypassing strict CSP for Swagger UI web interface
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/v1/docs') || req.path.startsWith('/api/docs') || req.path === '/docs') {
+    return next();
+  }
+  helmet()(req, res, next);
+});
+
 app.use(cors({
   origin: config.CLIENT_URL ? config.CLIENT_URL.split(',') : true,
   credentials: true,
@@ -25,7 +34,34 @@ app.use(express.json({ limit: '100kb' }));
 app.use('/uploads', (req, res, next) => { res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); next(); },
   express.static(path.join(__dirname, '..', 'uploads')));
 if (config.NODE_ENV !== 'test') app.use(morgan('dev'));
-app.use('/api', rateLimit({
+
+// Swagger OpenAPI documentation
+const swaggerUiOptions = {
+  customSiteTitle: 'Orion API Docs',
+  customCss: `
+    .swagger-ui .topbar { display: none; }
+    .swagger-ui .info { margin: 20px 0; }
+    .swagger-ui .info .title { font-family: sans-serif; font-weight: 700; color: #1e293b; }
+  `,
+  swaggerOptions: {
+    persistAuthorization: true,
+    docExpansion: 'none',
+    filter: true,
+  },
+};
+
+app.get('/api/v1/docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+app.get('/api/docs.json', (req, res) => res.redirect('/api/v1/docs.json'));
+
+app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
+app.get('/api/docs', (req, res) => res.redirect('/api/v1/docs'));
+app.get('/docs', (req, res) => res.redirect('/api/v1/docs'));
+
+// Rate limiting on API v1 routes
+app.use('/api/v1', rateLimit({
   windowMs: 15 * 60 * 1000,
   max: parseInt(process.env.API_RATE_LIMIT_MAX, 10) || 1000,
   standardHeaders: true, legacyHeaders: false,

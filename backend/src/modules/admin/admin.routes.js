@@ -15,8 +15,11 @@ router.get('/dashboard', controller.dashboard);
 
 // Customer management
 router.get('/customers', controller.listCustomers);
+router.post('/customers', rules.createCustomerRules, validate, controller.createCustomer);
 router.get('/customers/:id', controller.customerDetail);
+router.put('/customers/:id', rules.updateCustomerRules, validate, controller.updateCustomer);
 router.patch('/customers/:id/status', rules.customerStatusRules, validate, controller.setCustomerStatus);
+router.delete('/customers/:id', controller.deleteCustomer);
 
 // Order management
 router.get('/orders', controller.listOrders);

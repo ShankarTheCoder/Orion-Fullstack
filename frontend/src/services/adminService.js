@@ -26,6 +26,21 @@ export async function setCustomerStatus(id, status) {
   return normUser(data.data || data);
 }
 
+export async function createCustomer(payload) {
+  const data = await request('/admin/customers', { method: 'POST', body: payload });
+  return normUser(data.data || data);
+}
+
+export async function updateCustomer(id, payload) {
+  const data = await request(`/admin/customers/${id}`, { method: 'PUT', body: payload });
+  return normUser(data.data || data);
+}
+
+export async function deleteCustomer(id) {
+  return request(`/admin/customers/${id}`, { method: 'DELETE' });
+}
+
+
 export async function getPayments(params = {}) {
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) if (v) qs.set(k, v);
