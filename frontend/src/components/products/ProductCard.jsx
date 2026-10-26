@@ -49,10 +49,11 @@ export default function ProductCard({ product }) {
   };
 
   const img = productImageSrc(product);
+  const productLink = isCustomer ? `/customer/products/${product.id}` : `/products/${product.id}`;
 
   return (
     <div className="flex h-full w-full flex-col rounded-2xl border border-farm-100 bg-white p-3 shadow-card">
-      <Link to={`/products/${product.id}`} className="block">
+      <Link to={productLink} className="block">
         <div className="flex h-28 items-center justify-center overflow-hidden rounded-xl bg-farm-50">
           {img
             ? <img src={img} alt={product.name} className="h-full w-full object-cover" />

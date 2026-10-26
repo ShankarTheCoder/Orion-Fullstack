@@ -65,14 +65,14 @@ export default function Dashboard() {
             ))}
           </ul>
         ) : (
-          <p className="mt-3 text-sm text-slate-500">No orders yet — <Link to="/products" className="font-semibold text-farm-700">start shopping</Link>.</p>
+          <p className="mt-3 text-sm text-slate-500">No orders yet — <Link to="/customer/products" className="font-semibold text-farm-700">start shopping</Link>.</p>
         )}
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        <Link to="/products" className="rounded-2xl bg-farm-600 p-5 font-bold text-white shadow-card hover:bg-farm-700">🛒 Continue shopping</Link>
+        <Link to="/customer/products" className="rounded-2xl bg-farm-600 p-5 font-bold text-white shadow-card hover:bg-farm-700">🛒 Continue shopping</Link>
         <Link to="/customer/orders" className="rounded-2xl border border-farm-200 bg-white p-5 font-bold text-farm-800 shadow-card hover:bg-farm-50">🚚 Track orders</Link>
-        <Link to="/cart" className="rounded-2xl border border-farm-200 bg-white p-5 font-bold text-farm-800 shadow-card hover:bg-farm-50">🧺 Review my cart ({count})</Link>
+        <Link to="/customer/cart" className="rounded-2xl border border-farm-200 bg-white p-5 font-bold text-farm-800 shadow-card hover:bg-farm-50">🧺 Review my cart ({count})</Link>
       </div>
     </div>
   );

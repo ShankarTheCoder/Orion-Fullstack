@@ -64,7 +64,7 @@ export default function ProductDetail() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <Link to="/products" className="text-sm font-semibold text-farm-700 hover:underline">← Back to products</Link>
+      <Link to={isCustomer ? "/customer/products" : "/products"} className="text-sm font-semibold text-farm-700 hover:underline">← Back to products</Link>
       <div className="mt-4 grid gap-6 rounded-2xl border border-farm-100 bg-white p-6 shadow-card sm:grid-cols-2">
         {productImageSrc(product)
           ? <img src={productImageSrc(product)} alt={product.name} className="h-64 w-full rounded-2xl object-cover" />

@@ -29,7 +29,7 @@ export default function Cart() {
         <p className="text-5xl">🧺</p>
         <h1 className="mt-3 text-xl font-extrabold text-farm-900">Your cart is empty</h1>
         <p className="mt-1 text-slate-500">Add some fresh fruits and vegetables to get started.</p>
-        <Link to="/products" className="mt-4 inline-block rounded-lg bg-farm-600 px-6 py-2.5 font-semibold text-white hover:bg-farm-700">Browse products</Link>
+        <Link to="/customer/products" className="mt-4 inline-block rounded-lg bg-farm-600 px-6 py-2.5 font-semibold text-white hover:bg-farm-700">Browse products</Link>
       </div>
     );
   }
@@ -63,7 +63,7 @@ export default function Cart() {
             );
           })}
           <div className="p-4">
-            <Link to="/products" className="text-sm font-semibold text-farm-700 hover:underline">+ Add more items</Link>
+            <Link to="/customer/products" className="text-sm font-semibold text-farm-700 hover:underline">+ Add more items</Link>
           </div>
         </div>
 
@@ -77,7 +77,7 @@ export default function Cart() {
               {cart.deliveryCharge > 0 && <p className="rounded-lg bg-farm-50 px-3 py-2 text-xs font-medium text-farm-800">Add {formatPrice(500 - cart.subtotal)} more to get FREE delivery (above ₹499).</p>}
               <div className="flex justify-between border-t border-slate-100 pt-2 text-base font-extrabold"><dt>Grand total</dt><dd>{formatPrice(cart.total)}</dd></div>
             </dl>
-            <button onClick={() => navigate('/checkout')} className="mt-4 w-full rounded-xl bg-farm-600 py-3 font-bold text-white hover:bg-farm-700">
+            <button onClick={() => navigate('/customer/checkout')} className="mt-4 w-full rounded-xl bg-farm-600 py-3 font-bold text-white hover:bg-farm-700">
               Proceed to Checkout →
             </button>
           </div>

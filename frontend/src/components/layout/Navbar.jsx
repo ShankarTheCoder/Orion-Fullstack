@@ -20,7 +20,8 @@ export default function Navbar() {
 
   const doSearch = (e) => {
     e.preventDefault();
-    navigate(search.trim() ? `/products?search=${encodeURIComponent(search.trim())}` : '/products');
+    const base = isCustomer ? '/customer/products' : '/products';
+    navigate(search.trim() ? `${base}?search=${encodeURIComponent(search.trim())}` : base);
   };
 
   const doLogout = async () => { await logout(); navigate('/'); };
@@ -28,7 +29,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-farm-100 bg-white/95 shadow-sm backdrop-blur">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
-        <Link to="/" className="flex shrink-0 items-center gap-2">
+        <Link to={isCustomer ? "/customer/dashboard" : "/"} className="flex shrink-0 items-center gap-2">
           <img src={logoFull} alt="Orion" className="h-10 w-auto" />
         </Link>
 
@@ -61,15 +62,15 @@ export default function Navbar() {
               <Link
                 to="/customer/dashboard"
                 className="flex items-center gap-1.5 rounded-xl border border-farm-200 bg-farm-50 px-3 py-2 text-xs font-bold text-farm-900 shadow-sm transition hover:bg-farm-100"
-                title="Go to Customer Account Dashboard"
+                title="Go to Customer Console"
               >
                 <span className="text-sm">👤</span>
                 <span className="max-w-[100px] truncate sm:max-w-none">{user.name?.split(' ')[0]}</span>
-                <span className="hidden rounded-md bg-white px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-farm-700 sm:inline">
-                  Account
+                <span className="hidden rounded-md bg-farm-200 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-farm-800 sm:inline">
+                  Customer Console
                 </span>
               </Link>
-              <Link to="/cart" className="rounded-xl bg-farm-600 px-4 py-2 text-center leading-tight text-white shadow-sm hover:bg-farm-700">
+              <Link to="/customer/cart" className="rounded-xl bg-farm-600 px-4 py-2 text-center leading-tight text-white shadow-sm hover:bg-farm-700">
                 {count > 0 ? (
                   <>
                     <span className="block text-sm font-extrabold">🛒 {count} item{count > 1 ? 's' : ''}</span>
@@ -95,7 +96,7 @@ export default function Navbar() {
       {/* Slim links row */}
       <nav className="border-t border-slate-100">
         <div className="no-scrollbar mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-1.5">
-          {!isAdmin && (
+          {!isAdmin && !isCustomer && (
             <>
               <NavLink to="/" className={linkCls}>Home</NavLink>
               <NavLink to="/products" className={linkCls}>Products</NavLink>
@@ -107,11 +108,15 @@ export default function Navbar() {
           )}
           {isCustomer && (
             <>
-              <span className="mx-1 h-4 w-px bg-slate-200" />
               <NavLink to="/customer/dashboard" className={linkCls}>📊 Dashboard</NavLink>
-              <NavLink to="/customer/orders" className={linkCls}>📦 My Orders</NavLink>
+              <NavLink to="/customer/products" className={linkCls}>🥦 Shop Produce</NavLink>
+              <NavLink to="/customer/cart" className={linkCls}>🧺 Cart {count > 0 ? `(${count})` : ''}</NavLink>
+              <NavLink to="/customer/orders" className={linkCls}>📦 Orders</NavLink>
               <NavLink to="/customer/addresses" className={linkCls}>📍 Addresses</NavLink>
               <NavLink to="/customer/profile" className={linkCls}>👤 Profile</NavLink>
+              <NavLink to="/customer/feedback" className={linkCls}>💬 Feedback</NavLink>
+              <NavLink to="/customer/contact" className={linkCls}>✉️ Contact</NavLink>
+              <NavLink to="/customer/services" className={linkCls}>ℹ️ Services</NavLink>
             </>
           )}
           {isAdmin && <NavLink to="/admin" className={linkCls}>Admin Panel</NavLink>}

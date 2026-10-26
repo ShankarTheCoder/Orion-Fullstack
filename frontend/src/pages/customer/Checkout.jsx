@@ -58,7 +58,7 @@ export default function Checkout() {
     try {
       const order = await orderService.placeOrder(payload);
       await refresh();
-      navigate('/order-success', { state: { order } });
+      navigate('/customer/order-success', { state: { order } });
     } catch (err) {
       setError(err.message);
       toast.error(err.message);
@@ -72,7 +72,7 @@ export default function Checkout() {
         <p className="text-5xl">🧺</p>
         <h1 className="mt-3 text-xl font-extrabold text-farm-900">Nothing to check out</h1>
         <p className="mt-1 text-slate-500">Your cart is empty. Add some fresh produce first.</p>
-        <button onClick={() => navigate('/products')} className="mt-4 rounded-lg bg-farm-600 px-6 py-2.5 font-semibold text-white">Browse products</button>
+        <button onClick={() => navigate('/customer/products')} className="mt-4 rounded-lg bg-farm-600 px-6 py-2.5 font-semibold text-white">Browse products</button>
       </div>
     );
   }

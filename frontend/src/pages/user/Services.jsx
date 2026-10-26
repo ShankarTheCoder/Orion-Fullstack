@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import useAuth from '../../hooks/useAuth';
 
 const SERVICES = [
   ['🛒', 'Online ordering', 'Browse 1000+ farm products across fruits and vegetables, add to cart and order in minutes.'],
@@ -10,6 +11,7 @@ const SERVICES = [
 ];
 
 export default function Services() {
+  const { isCustomer } = useAuth();
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <h1 className="text-3xl font-extrabold text-farm-900">Our Services</h1>
@@ -25,7 +27,7 @@ export default function Services() {
       </div>
       <div className="mt-10 rounded-2xl bg-farm-700 p-6 text-center text-white">
         <p className="text-xl font-extrabold">Ready to order fresh?</p>
-        <Link to="/products" className="mt-3 inline-block rounded-lg bg-white px-6 py-2.5 font-bold text-farm-800">Browse products</Link>
+        <Link to={isCustomer ? '/customer/products' : '/products'} className="mt-3 inline-block rounded-lg bg-white px-6 py-2.5 font-bold text-farm-800">Browse products</Link>
       </div>
     </div>
   );

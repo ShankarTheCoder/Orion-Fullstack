@@ -1,15 +1,29 @@
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Navigate, Outlet, useLocation } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import useAuth from '../hooks/useAuth';
 import useCart from '../hooks/useCart';
 
-// Public shell: storefront navbar + footer (User/Guest module).
-// When a customer is logged in, displays a persistent customer session strip
-// so they never feel like a guest user while browsing the storefront.
+// Public shell: storefront navbar + footer (Guest module).
+// If a customer is logged in, any navigation to public modules automatically
+// routes into their dedicated Customer Console panel.
 export default function PublicLayout() {
   const { user, isCustomer } = useAuth();
   const { count } = useCart();
+  const location = useLocation();
+
+  // Redirect customers into their own platform/console panel
+  if (isCustomer) {
+    if (location.pathname === '/feedback') return <Navigate to="/customer/feedback" replace />;
+    if (location.pathname === '/products') return <Navigate to={`/customer/products${location.search}`} replace />;
+    if (location.pathname.startsWith('/products/')) return <Navigate to={`/customer${location.pathname}`} replace />;
+    if (location.pathname === '/contact') return <Navigate to="/customer/contact" replace />;
+    if (location.pathname === '/services') return <Navigate to="/customer/services" replace />;
+    if (location.pathname === '/about') return <Navigate to="/customer/about" replace />;
+    if (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register') {
+      return <Navigate to="/customer/dashboard" replace />;
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col">

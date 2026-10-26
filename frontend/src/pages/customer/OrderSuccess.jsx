@@ -19,7 +19,7 @@ export default function OrderSuccess() {
       ) : <p className="mt-2 text-slate-500">Your order has been placed.</p>}
       <div className="mt-6 flex flex-wrap justify-center gap-3">
         <Link to="/customer/orders" className="rounded-lg bg-farm-600 px-6 py-2.5 font-semibold text-white hover:bg-farm-700">Track my orders</Link>
-        <Link to="/products" className="rounded-lg border border-farm-300 px-6 py-2.5 font-semibold text-farm-800">Continue shopping</Link>
+        <Link to="/customer/products" className="rounded-lg border border-farm-300 px-6 py-2.5 font-semibold text-farm-800">Continue shopping</Link>
       </div>
     </div>
   );

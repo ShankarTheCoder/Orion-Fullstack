@@ -55,12 +55,22 @@ export default function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
       </Route>
 
-      {/* ------- Customer (authenticated) ------- */}
+      {/* ------- Customer Platform / Console (authenticated) ------- */}
       <Route element={<ProtectedRoute><CustomerLayout /></ProtectedRoute>}>
+        <Route path="/customer" element={<CustomerDashboard />} />
         <Route path="/customer/dashboard" element={<CustomerDashboard />} />
-        <Route path="/customer/profile" element={<Profile />} />
-        <Route path="/customer/addresses" element={<Addresses />} />
+        <Route path="/customer/products" element={<Products />} />
+        <Route path="/customer/products/:id" element={<ProductDetail />} />
+        <Route path="/customer/cart" element={<Cart />} />
+        <Route path="/customer/checkout" element={<Checkout />} />
         <Route path="/customer/orders" element={<CustomerOrders />} />
+        <Route path="/customer/addresses" element={<Addresses />} />
+        <Route path="/customer/profile" element={<Profile />} />
+        <Route path="/customer/feedback" element={<FeedbackPage />} />
+        <Route path="/customer/contact" element={<Contact />} />
+        <Route path="/customer/services" element={<Services />} />
+        <Route path="/customer/about" element={<About />} />
+        <Route path="/customer/order-success" element={<OrderSuccess />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/order-success" element={<OrderSuccess />} />
