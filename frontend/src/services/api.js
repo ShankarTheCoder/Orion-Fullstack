@@ -4,7 +4,7 @@
 // attached to every request. Errors throw an Error with the server's message
 // (plus .status and .fields when present) so pages can show them directly.
 
-const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
+const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1').replace(/\/$/, '');
 
 const TOKEN_KEY = 'fp_token';
 const USER_KEY = 'fp_user';
@@ -26,11 +26,16 @@ export async function request(path, { method = 'GET', body, auth = true } = {}) 
   const headers = { 'Content-Type': 'application/json' };
   const token = getToken();
   if (auth && token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(BASE_URL + path, {
-    method,
-    headers,
-    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-  });
+  let res;
+  try {
+    res = await fetch(BASE_URL + path, {
+      method,
+      headers,
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+  } catch (netErr) {
+    throw new Error(`Cannot reach the server (${BASE_URL}). Please verify your backend is running.`);
+  }
   let data = null;
   try { data = await res.json(); } catch { /* empty/non-JSON body */ }
   if (!res.ok) {

@@ -25,8 +25,25 @@ app.use((req, res, next) => {
 
 const Media = require('./models/Media.model');
 
+const clientUrls = (config.CLIENT_URL || '')
+  .split(',')
+  .map((u) => u.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
 app.use(cors({
-  origin: config.CLIENT_URL ? config.CLIENT_URL.split(',') : true,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (/^https?:\/\/localhost(:\d+)?$/.test(origin) || /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+    if (/^https?:\/\/[a-zA-Z0-9_.-]+\.vercel\.app$/.test(origin)) {
+      return callback(null, true);
+    }
+    if (clientUrls.includes(origin) || config.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    return callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '100kb' }));
