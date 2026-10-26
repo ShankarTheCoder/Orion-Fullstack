@@ -26,4 +26,22 @@ const resendOtpRules = [
   body('email').isEmail().withMessage('A valid email is required'),
 ];
 
-module.exports = { registerRules, loginRules, changePasswordRules, verifyEmailRules, resendOtpRules };
+const forgotPasswordRules = [
+  body('email').isEmail().withMessage('A valid email is required'),
+];
+
+const resetPasswordRules = [
+  body('email').isEmail().withMessage('A valid email is required'),
+  body('otp').matches(/^\d{6}$/).withMessage('OTP must be a 6-digit code'),
+  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters'),
+];
+
+module.exports = {
+  registerRules,
+  loginRules,
+  changePasswordRules,
+  verifyEmailRules,
+  resendOtpRules,
+  forgotPasswordRules,
+  resetPasswordRules,
+};

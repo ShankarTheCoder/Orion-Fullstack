@@ -23,6 +23,7 @@
     "mongoose": "^8.5.1",
     "morgan": "^1.10.0",
     "multer": "^2.5.0",
+    "nodemailer": "^10.2.1",
     "resend": "^4.0.0",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1"

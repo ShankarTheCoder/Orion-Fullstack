@@ -18,6 +18,7 @@ export default function VerifyEmail() {
 
   const [email, setEmail] = useState(location.state?.email || '');
   const [otp, setOtp] = useState('');
+  const [devOtp, setDevOtp] = useState(location.state?.devOtp || '');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [resending, setResending] = useState(false);
@@ -55,8 +56,9 @@ export default function VerifyEmail() {
     setError('');
     setResending(true);
     try {
-      const message = await authService.resendOtp(email.trim());
-      toast.info(message || 'A new OTP has been sent');
+      const data = await authService.resendOtp(email.trim());
+      toast.info(data.message || 'A new OTP has been sent');
+      if (data.devOtp) setDevOtp(data.devOtp);
       startCooldown();
     } catch (err) {
       setError(err.message);
@@ -73,6 +75,12 @@ export default function VerifyEmail() {
           We sent a 6-digit OTP to <strong className="text-slate-700">{email || 'your email'}</strong>.
           It is valid for <strong>10 minutes</strong>. Enter it below to activate your account.
         </p>
+
+        {devOtp && (
+          <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+            <strong>[DEV MODE OTP]:</strong> Use code <code className="rounded bg-amber-200 px-2 py-0.5 font-bold tracking-widest">{devOtp}</code> to verify without waiting for email.
+          </div>
+        )}
 
         <form onSubmit={verify} className="mt-5 space-y-4">
           <div>

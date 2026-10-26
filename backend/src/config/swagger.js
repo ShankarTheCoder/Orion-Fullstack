@@ -351,6 +351,58 @@ const swaggerDefinition = {
         },
       },
     },
+    '/auth/forgot-password': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Request password reset OTP',
+        description: 'Sends a 6-digit random password reset code to the registered email address.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['email'],
+                properties: {
+                  email: { type: 'string', format: 'email', example: 'aarav@example.com' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Reset code sent to email', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } } },
+          404: { description: 'Account not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/auth/reset-password': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Reset password with OTP',
+        description: 'Verifies the 6-digit reset code and sets a new password. Returns a new JWT token upon success.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['email', 'otp', 'newPassword'],
+                properties: {
+                  email: { type: 'string', format: 'email', example: 'aarav@example.com' },
+                  otp: { type: 'string', example: '482910' },
+                  newPassword: { type: 'string', format: 'password', minLength: 6, example: 'newPassword@123' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Password reset successfully', content: { 'application/json': { schema: { $ref: '#/components/schemas/AuthSuccessResponse' } } } },
+          400: { description: 'Invalid or expired OTP', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
     '/auth/login': {
       post: {
         tags: ['Auth'],

@@ -163,6 +163,33 @@ describe('email OTP verification (Resend dev mode)', () => {
     const dup = await api().post('/api/v1/auth/register').send(newUser);
     expect(dup.status).toBe(409);
   });
+
+  test('forgot-password generates random OTP and reset-password updates password', async () => {
+    const forgotRes = await api().post('/api/v1/auth/forgot-password').send({ email: newUser.email });
+    expect(forgotRes.status).toBe(200);
+    expect(forgotRes.body.success).toBe(true);
+
+    const resetOtp = lastOtpFor(newUser.email);
+    expect(resetOtp).toMatch(/^\d{6}$/);
+
+    const wrong = await api().post('/api/v1/auth/reset-password').send({
+      email: newUser.email, otp: '000000', newPassword: 'newSecretPassword123',
+    });
+    expect(wrong.status).toBe(400);
+
+    const ok = await api().post('/api/v1/auth/reset-password').send({
+      email: newUser.email, otp: resetOtp, newPassword: 'newSecretPassword123',
+    });
+    expect(ok.status).toBe(200);
+    expect(ok.body.success).toBe(true);
+    expect(ok.body.token).toBeDefined();
+
+    const loginRes = await api().post('/api/v1/auth/login').send({
+      email: newUser.email, password: 'newSecretPassword123',
+    });
+    expect(loginRes.status).toBe(200);
+    expect(loginRes.body.token).toBeDefined();
+  });
 });
 
 describe('catalogue (public)', () => {

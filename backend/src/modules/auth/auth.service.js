@@ -25,14 +25,14 @@ function authResponse(user, status = 200) {
 }
 
 async function issueOtp(user) {
-  const otp = String(crypto.randomInt(100000, 1000000)); // 6 digits
+  const otp = String(crypto.randomInt(100000, 1000000)); // 6-digit random code
   user.emailOtpHash = hashOtp(otp);
   user.emailOtpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
   user.emailOtpAttempts = 0;
   user.emailOtpLastSentAt = new Date();
   await user.save();
-  await sendOtpEmail(user.email, otp);
-  return user;
+  const mailResult = await sendOtpEmail(user.email, otp, 'verification');
+  return { user, otp, devMode: mailResult?.devMode };
 }
 
 async function register({ name, mobile, email, password }) {
@@ -48,7 +48,7 @@ async function register({ name, mobile, email, password }) {
     role: 'customer', // never admin via the public API
     isEmailVerified: false,
   });
-  await issueOtp(user);
+  const { devMode, otp } = await issueOtp(user);
   // No token yet - the client must verify the OTP first.
   return {
     status: 201,
@@ -56,6 +56,7 @@ async function register({ name, mobile, email, password }) {
       success: true,
       message: 'Registration successful. Please verify the OTP sent to your email.',
       user: user.toSafeJSON(),
+      ...(devMode ? { devOtp: otp } : {}),
     },
   };
 }
@@ -98,8 +99,73 @@ async function resendOtp(email) {
       throw new ApiError(429, `Please wait ${wait} seconds before requesting a new OTP.`);
     }
   }
-  await issueOtp(user); // fresh OTP - the old hash is overwritten/invalidated
-  return { message: 'A new OTP has been sent to your email.' };
+  const { devMode, otp } = await issueOtp(user); // fresh OTP - the old hash is overwritten/invalidated
+  return {
+    message: 'A new OTP has been sent to your email.',
+    ...(devMode ? { devOtp: otp } : {}),
+  };
+}
+
+async function forgotPassword(email) {
+  const user = await User.findOne({ email: String(email).toLowerCase() });
+  if (!user) {
+    throw new ApiError(404, 'No account found with this email address');
+  }
+  if (user.status === 'blocked') {
+    throw new ApiError(403, 'Your account is blocked. Please contact support.');
+  }
+  if (user.resetPasswordOtpLastSentAt) {
+    const elapsed = Date.now() - user.resetPasswordOtpLastSentAt.getTime();
+    if (elapsed < OTP_RESEND_COOLDOWN_MS) {
+      const wait = Math.ceil((OTP_RESEND_COOLDOWN_MS - elapsed) / 1000);
+      throw new ApiError(429, `Please wait ${wait} seconds before requesting a new password reset code.`);
+    }
+  }
+
+  const otp = String(crypto.randomInt(100000, 1000000)); // 6-digit random code
+  user.resetPasswordOtpHash = hashOtp(otp);
+  user.resetPasswordOtpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
+  user.resetPasswordOtpAttempts = 0;
+  user.resetPasswordOtpLastSentAt = new Date();
+  await user.save();
+
+  const mailResult = await sendOtpEmail(user.email, otp, 'reset-password');
+  return {
+    success: true,
+    message: 'Password reset code has been sent to your email.',
+    ...(mailResult?.devMode ? { devOtp: otp } : {}),
+  };
+}
+
+async function resetPassword(email, otp, newPassword) {
+  const user = await User.findOne({ email: String(email).toLowerCase() }).select('+resetPasswordOtpHash');
+  if (!user) {
+    throw new ApiError(404, 'No account found with this email address');
+  }
+  if (!user.resetPasswordOtpHash || !user.resetPasswordOtpExpiresAt) {
+    throw new ApiError(400, 'No password reset code is pending. Please request a new one.');
+  }
+  if (user.resetPasswordOtpAttempts >= OTP_MAX_ATTEMPTS) {
+    throw new ApiError(429, 'Too many incorrect attempts. Please request a new password reset code.');
+  }
+  if (user.resetPasswordOtpExpiresAt.getTime() < Date.now()) {
+    throw new ApiError(400, 'Password reset code has expired. Please request a new one.');
+  }
+  if (hashOtp(otp) !== user.resetPasswordOtpHash) {
+    user.resetPasswordOtpAttempts += 1;
+    await user.save();
+    const remaining = OTP_MAX_ATTEMPTS - user.resetPasswordOtpAttempts;
+    throw new ApiError(400, `Invalid reset code. ${remaining > 0 ? `${remaining} attempt(s) remaining.` : 'No attempts remaining. Please request a new code.'}`);
+  }
+
+  user.passwordHash = await User.hashPassword(newPassword);
+  user.resetPasswordOtpHash = undefined;
+  user.resetPasswordOtpExpiresAt = undefined;
+  user.resetPasswordOtpAttempts = 0;
+  user.isEmailVerified = true; // Confirms valid email ownership
+  await user.save();
+
+  return authResponse(user);
 }
 
 async function login(email, password, { adminOnly = false } = {}) {
@@ -131,5 +197,6 @@ async function changePassword(userId, currentPassword, newPassword) {
 
 module.exports = {
   register, login, changePassword, authResponse, verifyEmail, resendOtp,
+  forgotPassword, resetPassword,
   OTP_TTL_MS, OTP_MAX_ATTEMPTS, OTP_RESEND_COOLDOWN_MS,
 };

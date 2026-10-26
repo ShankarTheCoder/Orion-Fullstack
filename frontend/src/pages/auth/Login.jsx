@@ -53,7 +53,12 @@ export default function Login() {
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-farm-500" placeholder="you@example.com" />
           </div>
           <div>
-            <label className="text-sm font-medium">Password</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Password</label>
+              <Link to="/forgot-password" className="text-xs font-semibold text-farm-700 hover:underline">
+                Forgot password?
+              </Link>
+            </div>
             <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-farm-500" placeholder="••••••••" />
           </div>

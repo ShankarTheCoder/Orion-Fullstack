@@ -31,6 +31,12 @@ const userSchema = new mongoose.Schema(
     emailOtpExpiresAt: { type: Date },
     emailOtpAttempts: { type: Number, default: 0 },
     emailOtpLastSentAt: { type: Date },
+
+    // Password reset OTP fields (10-minute validity, max 5 attempts)
+    resetPasswordOtpHash: { type: String, select: false },
+    resetPasswordOtpExpiresAt: { type: Date },
+    resetPasswordOtpAttempts: { type: Number, default: 0 },
+    resetPasswordOtpLastSentAt: { type: Date },
   },
   { timestamps: true }
 );

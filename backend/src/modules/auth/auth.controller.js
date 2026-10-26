@@ -52,4 +52,21 @@ async function changePassword(req, res, next) {
   } catch (err) { next(err); }
 }
 
-module.exports = { register, verifyEmail, resendOtp, login, adminLogin, me, logout, changePassword };
+async function forgotPassword(req, res, next) {
+  try {
+    const result = await service.forgotPassword(req.body.email);
+    res.json(result);
+  } catch (err) { next(err); }
+}
+
+async function resetPassword(req, res, next) {
+  try {
+    const { body } = await service.resetPassword(req.body.email, req.body.otp, req.body.newPassword);
+    res.json({ ...body, data: body.user });
+  } catch (err) { next(err); }
+}
+
+module.exports = {
+  register, verifyEmail, resendOtp, login, adminLogin, me, logout, changePassword,
+  forgotPassword, resetPassword,
+};

@@ -22,10 +22,10 @@ export default function Register() {
     if (Object.keys(errs).length) return;
     setBusy(true);
     try {
-      await authService.register(form);
+      const res = await authService.register(form);
       toast.success('Account created — OTP sent to your email');
-      // Next step: verify the email with the 6-digit OTP (Resend).
-      navigate('/verify-email', { state: { email: form.email } });
+      // Next step: verify the email with the 6-digit OTP.
+      navigate('/verify-email', { state: { email: form.email, devOtp: res.devOtp } });
     } catch (err) {
       setServerError(err.message);
       if (err.fields) {

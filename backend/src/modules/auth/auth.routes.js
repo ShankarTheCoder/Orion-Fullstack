@@ -17,6 +17,8 @@ const authLimiter = rateLimit({
 router.post('/register', authLimiter, rules.registerRules, validate, controller.register);
 router.post('/verify-email', authLimiter, rules.verifyEmailRules, validate, controller.verifyEmail);
 router.post('/resend-otp', authLimiter, rules.resendOtpRules, validate, controller.resendOtp);
+router.post('/forgot-password', authLimiter, rules.forgotPasswordRules, validate, controller.forgotPassword);
+router.post('/reset-password', authLimiter, rules.resetPasswordRules, validate, controller.resetPassword);
 router.post('/login', authLimiter, rules.loginRules, validate, controller.login);
 router.post('/admin/login', authLimiter, rules.loginRules, validate, controller.adminLogin);
 router.get('/me', authenticate, controller.me);

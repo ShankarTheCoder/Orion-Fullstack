@@ -4,7 +4,7 @@ import { request, saveSession, clearSession, normUser } from './api';
 export async function register(payload) {
   // Creates an UNVERIFIED account and emails a 6-digit OTP. No token yet.
   const data = await request('/auth/register', { method: 'POST', body: payload, auth: false });
-  return { user: normUser(data.user || data.data), message: data.message };
+  return { user: normUser(data.user || data.data), message: data.message, devOtp: data.devOtp };
 }
 
 export async function verifyEmail(email, otp) {
@@ -17,7 +17,7 @@ export async function verifyEmail(email, otp) {
 
 export async function resendOtp(email) {
   const data = await request('/auth/resend-otp', { method: 'POST', body: { email }, auth: false });
-  return data.message;
+  return data;
 }
 
 export async function login(email, password) {
@@ -39,4 +39,16 @@ export async function logout() {
 
 export async function changePassword(currentPassword, newPassword) {
   return request('/auth/change-password', { method: 'PUT', body: { currentPassword, newPassword } });
+}
+
+export async function forgotPassword(email) {
+  const data = await request('/auth/forgot-password', { method: 'POST', body: { email }, auth: false });
+  return data;
+}
+
+export async function resetPassword(email, otp, newPassword) {
+  const data = await request('/auth/reset-password', { method: 'POST', body: { email, otp, newPassword }, auth: false });
+  const user = normUser(data.user || data.data);
+  if (data.token) saveSession(data.token, user);
+  return { user, token: data.token, message: data.message };
 }
