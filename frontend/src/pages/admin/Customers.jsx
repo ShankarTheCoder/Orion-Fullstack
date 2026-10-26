@@ -112,13 +112,12 @@ export default function Customers() {
     }
   };
 
-  const toggleVerification = async (customer) => {
-    const next = !customer.isEmailVerified;
+  const verifyCustomer = async (customer) => {
     try {
-      await adminService.setCustomerVerification(customer.id, next);
-      toast.success(`${customer.name} is now ${next ? 'Verified' : 'Unverified (Pending)'}`);
+      await adminService.setCustomerVerification(customer.id, true);
+      toast.success(`${customer.name} has been verified`);
       if (detail?.customer?.id === customer.id) {
-        setDetail((d) => ({ ...d, customer: { ...d.customer, isEmailVerified: next } }));
+        setDetail((d) => ({ ...d, customer: { ...d.customer, isEmailVerified: true } }));
       }
       refetch();
     } catch (err) {
@@ -253,17 +252,15 @@ export default function Customers() {
                     >
                       View
                     </button>
-                    <button
-                      onClick={() => toggleVerification(c)}
-                      className={`rounded-md border px-2.5 py-1 text-xs font-bold transition shadow-xs ${
-                        c.isEmailVerified
-                          ? 'border-slate-300 text-slate-600 hover:bg-slate-50'
-                          : 'border-emerald-500 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
-                      }`}
-                      title={c.isEmailVerified ? 'Mark as unverified' : 'Verify customer directly'}
-                    >
-                      {c.isEmailVerified ? 'Unverify' : '✓ Verify'}
-                    </button>
+                    {!c.isEmailVerified && (
+                      <button
+                        onClick={() => verifyCustomer(c)}
+                        className="rounded-md border border-emerald-500 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition shadow-xs"
+                        title="Verify customer directly"
+                      >
+                        ✓ Verify
+                      </button>
+                    )}
                     <button
                       onClick={() => openEditModal(c)}
                       className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
@@ -328,28 +325,32 @@ export default function Customers() {
                   <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Account Verification</div>
                   <div className="text-sm font-semibold mt-0.5">
                     {detail.customer.isEmailVerified ? (
-                      <span className="text-emerald-700 font-bold">✓ Verified by Admin</span>
+                      <span className="text-emerald-700 font-bold inline-flex items-center gap-1.5">
+                        ✓ Verified by Admin
+                        <span className="text-xs font-normal text-slate-400">(Permanent)</span>
+                      </span>
                     ) : (
                       <span className="text-amber-700 font-bold">⏳ Pending Admin Verification</span>
                     )}
                   </div>
                 </div>
-                <button
-                  onClick={async () => {
-                    const next = !detail.customer.isEmailVerified;
-                    await adminService.setCustomerVerification(detail.customer.id, next);
-                    toast.success(`Customer is now ${next ? 'Verified' : 'Pending'}`);
-                    setDetail({ ...detail, customer: { ...detail.customer, isEmailVerified: next } });
-                    refetch();
-                  }}
-                  className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition shadow-xs ${
-                    detail.customer.isEmailVerified
-                      ? 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                      : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                  }`}
-                >
-                  {detail.customer.isEmailVerified ? 'Mark as Pending' : '✓ Verify Customer Now'}
-                </button>
+                {!detail.customer.isEmailVerified && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await adminService.setCustomerVerification(detail.customer.id, true);
+                        toast.success('Customer verified successfully');
+                        setDetail({ ...detail, customer: { ...detail.customer, isEmailVerified: true } });
+                        refetch();
+                      } catch (err) {
+                        toast.error(err.message);
+                      }
+                    }}
+                    className="rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white transition shadow-xs hover:bg-emerald-700"
+                  >
+                    ✓ Verify Customer Now
+                  </button>
+                )}
               </div>
               <h3 className="mt-4 text-xs font-bold uppercase tracking-wider text-slate-400">Recent Orders</h3>
               <ul className="mt-2 divide-y divide-slate-100">
@@ -457,14 +458,21 @@ export default function Customers() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700">Verification Status</label>
-                  <select
-                    value={form.isEmailVerified ? 'true' : 'false'}
-                    onChange={(e) => setForm({ ...form, isEmailVerified: e.target.value === 'true' })}
-                    className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-farm-500 font-medium"
-                  >
-                    <option value="true">Verified ✓ (Can log in)</option>
-                    <option value="false">Pending Verification (Unverified)</option>
-                  </select>
+                  {modalMode !== 'create' && modalMode.isEmailVerified ? (
+                    <div className="mt-1 flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-xs font-bold text-emerald-800">
+                      <span>✓ Verified (Permanent)</span>
+                      <span className="text-[11px] font-normal text-emerald-600">Cannot be unverified</span>
+                    </div>
+                  ) : (
+                    <select
+                      value={form.isEmailVerified ? 'true' : 'false'}
+                      onChange={(e) => setForm({ ...form, isEmailVerified: e.target.value === 'true' })}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-farm-500 font-medium"
+                    >
+                      <option value="true">Verified ✓ (Can log in)</option>
+                      <option value="false">Pending Verification (Unverified)</option>
+                    </select>
+                  )}
                 </div>
               </div>
 

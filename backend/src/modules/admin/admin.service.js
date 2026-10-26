@@ -106,13 +106,18 @@ async function setCustomerStatus(adminUser, customerId, status) {
   return user.toSafeJSON();
 }
 
-// Admin can verify or unverify customers directly from the Admin Panel
+// Admin can verify customers directly from the Admin Panel. Once verified, a customer cannot be unverified.
 async function setCustomerVerification(adminUser, customerId, isVerified = true) {
   if (String(adminUser._id) === String(customerId)) {
     throw new ApiError(400, 'You cannot change the verification status of your own account');
   }
   const user = await User.findById(customerId);
   if (!user || user.role !== 'customer') throw new ApiError(404, 'Customer not found');
+
+  if (user.isEmailVerified && !isVerified) {
+    throw new ApiError(400, 'Once a customer is verified, they cannot be unverified.');
+  }
+
   user.isEmailVerified = Boolean(isVerified);
   await user.save();
   return user.toSafeJSON();
@@ -164,6 +169,9 @@ async function updateCustomer(adminUser, customerId, data) {
   if (data.name) user.name = data.name.trim();
   if (data.status) user.status = data.status;
   if (data.isEmailVerified !== undefined) {
+    if (user.isEmailVerified && !data.isEmailVerified) {
+      throw new ApiError(400, 'Once a customer is verified, they cannot be unverified.');
+    }
     user.isEmailVerified = Boolean(data.isEmailVerified);
   }
   if (data.password) {

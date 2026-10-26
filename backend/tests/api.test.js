@@ -114,16 +114,10 @@ describe('customer registration without OTP + admin panel verification', () => {
     expect(res.body.token).toBeTruthy();
   });
 
-  test('admin can unverify customer, blocking login again', async () => {
+  test('attempting to unverify an already verified customer is REJECTED with 400', async () => {
     const unverifyRes = await asAdmin(api().patch(`/api/v1/admin/customers/${newUserId}/verify`).send({ isVerified: false }));
-    expect(unverifyRes.status).toBe(200);
-    expect(unverifyRes.body.data.isEmailVerified).toBe(false);
-
-    const loginRes = await api().post('/api/v1/auth/login').send({ email: newUser.email, password: newUser.password });
-    expect(loginRes.status).toBe(403);
-
-    // Re-verify for subsequent tests
-    await asAdmin(api().patch(`/api/v1/admin/customers/${newUserId}/verify`).send({ isVerified: true }));
+    expect(unverifyRes.status).toBe(400);
+    expect(unverifyRes.body.message).toMatch(/cannot be unverified/i);
   });
 
   test('register still validates input and rejects duplicates', async () => {
