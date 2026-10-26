@@ -28,6 +28,7 @@ export default function CustomerLayout() {
     ['/customer/addresses', '📍 My Addresses'],
     ['/customer/profile', '👤 My Profile'],
     ['/feedback', '💬 Feedback'],
+    ['/contact', '✉️ Contact Support'],
   ];
 
   return (
@@ -55,7 +56,7 @@ export default function CustomerLayout() {
           <button onClick={doLogout} className="rounded-lg border border-farm-700 px-3 py-1.5 text-sm">Logout</button>
         </div>
         <nav className="flex gap-1 overflow-x-auto bg-farm-900 px-3 py-2 md:hidden">
-          {[['/customer/dashboard', 'Dashboard'], ['/products', 'Shop'], ['/cart', 'Cart'], ['/customer/orders', 'Orders'], ['/customer/addresses', 'Addresses'], ['/customer/profile', 'Profile'], ['/feedback', 'Feedback']].map(([to, label]) => (
+          {[['/customer/dashboard', 'Dashboard'], ['/products', 'Shop'], ['/cart', 'Cart'], ['/customer/orders', 'Orders'], ['/customer/addresses', 'Addresses'], ['/customer/profile', 'Profile'], ['/feedback', 'Feedback'], ['/contact', 'Contact']].map(([to, label]) => (
             <NavLink key={to} to={to} end={to === '/customer/dashboard'} className={({ isActive }) => `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm ${isActive ? 'bg-farm-500 text-white' : 'text-farm-100'}`}>{label}</NavLink>
           ))}
         </nav>

@@ -1,16 +1,25 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import useAuth from '../../hooks/useAuth';
 import * as authService from '../../services/authService';
 import { validateRegister } from '../../utils/validators';
 import { useToast } from '../../components/common/Toast';
 
 export default function Register() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
   const [form, setForm] = useState({ name: '', mobile: '', email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      if (user?.role === 'admin') navigate('/admin', { replace: true });
+      else navigate('/customer/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 

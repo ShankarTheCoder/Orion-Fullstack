@@ -1,12 +1,31 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as customerService from '../../services/customerService';
+import useAuth from '../../hooks/useAuth';
 import { isEmail, isMobile } from '../../utils/validators';
 
 export default function Contact() {
-  const [form, setForm] = useState({ name: '', email: '', mobile: '', message: '' });
+  const { user, isCustomer } = useAuth();
+  const [form, setForm] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    mobile: user?.mobile || '',
+    message: '',
+  });
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setForm((f) => ({
+        ...f,
+        name: f.name || user.name || '',
+        email: f.email || user.email || '',
+        mobile: f.mobile || user.mobile || '',
+      }));
+    }
+  }, [user]);
+
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const submit = async (e) => {
@@ -31,6 +50,16 @@ export default function Contact() {
     <div className="mx-auto max-w-2xl px-4 py-10">
       <h1 className="text-3xl font-extrabold text-farm-900">Contact Us</h1>
       <p className="mt-2 text-slate-600">Questions about an order, delivery areas or bulk buying? Send us a request — the Orion team (admin) reviews every message.</p>
+
+      {user && (
+        <div className="mt-4 flex items-center gap-2 rounded-xl border border-farm-200 bg-farm-50 px-3.5 py-2.5 text-xs text-farm-900 shadow-sm">
+          <span>👤</span>
+          <span>
+            Sending message as <strong className="font-bold text-farm-950">{user.name}</strong> ({user.email})
+            {isCustomer && <span className="ml-1.5 rounded bg-farm-200 px-1.5 py-0.5 text-[10px] font-bold uppercase text-farm-800">Customer</span>}
+          </span>
+        </div>
+      )}
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-farm-100 bg-white p-4 shadow-card"><p className="text-2xl">📍</p><p className="mt-1 font-bold">Meerut, UP</p><p className="text-sm text-slate-500">Delivering across the city</p></div>
         <div className="rounded-2xl border border-farm-100 bg-white p-4 shadow-card"><p className="text-2xl">📧</p><p className="mt-1 font-bold">support@farmpicked.in</p><p className="text-sm text-slate-500">Replies within 24 hours</p></div>

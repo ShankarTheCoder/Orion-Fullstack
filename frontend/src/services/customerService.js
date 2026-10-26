@@ -31,19 +31,19 @@ export async function deleteAddress(id) {
 }
 
 export async function submitFeedback(payload) {
-  const data = await request('/feedback', { method: 'POST', body: payload, auth: false });
+  const data = await request('/feedback', { method: 'POST', body: payload });
   return data.data || data;
 }
 export async function getFeedback(params = {}) {
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) if (v) qs.set(k, v);
   if (!qs.has('limit')) qs.set('limit', '50');
-  const data = await request(`/feedback?${qs.toString()}`, { auth: false });
+  const data = await request(`/feedback?${qs.toString()}`);
   return listOf(data).map((f) => ({ ...f, id: f.id ?? f._id, productName: f.product?.name || '' }));
 }
 
 export async function submitContact(payload) {
-  const data = await request('/contact', { method: 'POST', body: payload, auth: false });
+  const data = await request('/contact', { method: 'POST', body: payload });
   return data.data || data;
 }
 

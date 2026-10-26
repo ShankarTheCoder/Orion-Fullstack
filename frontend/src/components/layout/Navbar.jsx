@@ -58,8 +58,16 @@ export default function Navbar() {
           )}
           {isCustomer && (
             <>
-              <Link to="/customer/dashboard" className="hidden rounded-full bg-farm-100 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-farm-800 md:block">
-                {user.name?.split(' ')[0]} · {user.role}
+              <Link
+                to="/customer/dashboard"
+                className="flex items-center gap-1.5 rounded-xl border border-farm-200 bg-farm-50 px-3 py-2 text-xs font-bold text-farm-900 shadow-sm transition hover:bg-farm-100"
+                title="Go to Customer Account Dashboard"
+              >
+                <span className="text-sm">👤</span>
+                <span className="max-w-[100px] truncate sm:max-w-none">{user.name?.split(' ')[0]}</span>
+                <span className="hidden rounded-md bg-white px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-farm-700 sm:inline">
+                  Account
+                </span>
               </Link>
               <Link to="/cart" className="rounded-xl bg-farm-600 px-4 py-2 text-center leading-tight text-white shadow-sm hover:bg-farm-700">
                 {count > 0 ? (
@@ -69,16 +77,16 @@ export default function Navbar() {
                   </>
                 ) : <span className="block px-1 py-0.5 text-sm font-extrabold">🛒 My Cart</span>}
               </Link>
-              <button onClick={doLogout} className="hidden rounded-lg border border-farm-300 px-3 py-2 text-sm font-medium text-farm-800 hover:bg-farm-50 md:block">Logout</button>
+              <button onClick={doLogout} className="hidden rounded-lg border border-farm-300 px-3 py-2 text-sm font-medium text-farm-800 hover:bg-farm-50 sm:block">Logout</button>
             </>
           )}
           {isAdmin && (
             <>
-              <span className="hidden rounded-full bg-farm-100 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-farm-800 md:block">
-                {user.name?.split(' ')[0]} · {user.role}
+              <span className="flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-slate-800">
+                <span>🛡️</span> {user.name?.split(' ')[0]}
               </span>
               <Link to="/admin" className="rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-700">Admin Panel</Link>
-              <button onClick={doLogout} className="hidden rounded-lg border border-farm-300 px-3 py-2 text-sm font-medium text-farm-800 hover:bg-farm-50 md:block">Logout</button>
+              <button onClick={doLogout} className="hidden rounded-lg border border-farm-300 px-3 py-2 text-sm font-medium text-farm-800 hover:bg-farm-50 sm:block">Logout</button>
             </>
           )}
         </div>
@@ -87,20 +95,28 @@ export default function Navbar() {
       {/* Slim links row */}
       <nav className="border-t border-slate-100">
         <div className="no-scrollbar mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-1.5">
-          {!isAdmin && <>
-            <NavLink to="/" className={linkCls}>Home</NavLink>
-            <NavLink to="/products" className={linkCls}>Products</NavLink>
-            <NavLink to="/services" className={linkCls}>Services</NavLink>
-            <NavLink to="/about" className={linkCls}>About</NavLink>
-            <NavLink to="/contact" className={linkCls}>Contact</NavLink>
-          </>}
-          {isCustomer && <>
-            <NavLink to="/customer/orders" className={linkCls}>My Orders</NavLink>
-            <NavLink to="/customer/dashboard" className={linkCls}>My Account</NavLink>
-          </>}
+          {!isAdmin && (
+            <>
+              <NavLink to="/" className={linkCls}>Home</NavLink>
+              <NavLink to="/products" className={linkCls}>Products</NavLink>
+              <NavLink to="/services" className={linkCls}>Services</NavLink>
+              <NavLink to="/about" className={linkCls}>About</NavLink>
+              <NavLink to="/contact" className={linkCls}>Contact</NavLink>
+              <NavLink to="/feedback" className={linkCls}>Feedback</NavLink>
+            </>
+          )}
+          {isCustomer && (
+            <>
+              <span className="mx-1 h-4 w-px bg-slate-200" />
+              <NavLink to="/customer/dashboard" className={linkCls}>📊 Dashboard</NavLink>
+              <NavLink to="/customer/orders" className={linkCls}>📦 My Orders</NavLink>
+              <NavLink to="/customer/addresses" className={linkCls}>📍 Addresses</NavLink>
+              <NavLink to="/customer/profile" className={linkCls}>👤 Profile</NavLink>
+            </>
+          )}
           {isAdmin && <NavLink to="/admin" className={linkCls}>Admin Panel</NavLink>}
           {user && (
-            <button onClick={doLogout} className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-farm-100 md:hidden">Logout</button>
+            <button onClick={doLogout} className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-farm-100 sm:hidden">Logout</button>
           )}
         </div>
       </nav>

@@ -1,16 +1,34 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as customerService from '../../services/customerService';
+import useAuth from '../../hooks/useAuth';
 import useFetch from '../../hooks/useFetch';
 import Loader from '../../components/common/Loader';
 import RatingStars from '../../components/common/RatingStars';
 import { isMobile } from '../../utils/validators';
 
 export default function Feedback() {
+  const { user, isCustomer } = useAuth();
   const { data: reviews, loading, refetch } = useFetch(() => customerService.getFeedback({ limit: 50 }), []);
-  const [form, setForm] = useState({ name: '', phone: '', rating: 5, comment: '' });
+  const [form, setForm] = useState({
+    name: user?.name || '',
+    phone: user?.mobile || '',
+    rating: 5,
+    comment: '',
+  });
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setForm((f) => ({
+        ...f,
+        name: f.name || user.name || '',
+        phone: f.phone || user.mobile || '',
+      }));
+    }
+  }, [user]);
+
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const submit = async (e) => {
@@ -23,7 +41,7 @@ export default function Feedback() {
     try {
       await customerService.submitFeedback(form);
       setDone(true);
-      setForm({ name: '', phone: '', rating: 5, comment: '' });
+      setForm({ name: user?.name || '', phone: user?.mobile || '', rating: 5, comment: '' });
       refetch();
     } catch (err) { setError(err.message); }
     finally { setBusy(false); }
@@ -33,6 +51,16 @@ export default function Feedback() {
     <div className="mx-auto max-w-3xl px-4 py-10">
       <h1 className="text-3xl font-extrabold text-farm-900">Feedback & Reviews</h1>
       <p className="mt-2 text-slate-600">Tell us how we did — every submission is read by the Orion team.</p>
+
+      {user && (
+        <div className="mt-4 flex items-center gap-2 rounded-xl border border-farm-200 bg-farm-50 px-3.5 py-2.5 text-xs text-farm-900 shadow-sm">
+          <span>👤</span>
+          <span>
+            Logged in as <strong className="font-bold text-farm-950">{user.name}</strong> ({user.email})
+            {isCustomer && <span className="ml-1.5 rounded bg-farm-200 px-1.5 py-0.5 text-[10px] font-bold uppercase text-farm-800">Customer</span>}
+          </span>
+        </div>
+      )}
 
       <form onSubmit={submit} className="mt-6 space-y-4 rounded-2xl border border-farm-100 bg-white p-6 shadow-card">
         <div className="grid gap-4 sm:grid-cols-2">

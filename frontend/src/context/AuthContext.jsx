@@ -1,49 +1,97 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import * as authService from '../services/authService';
-import { getStoredUser } from '../services/api';
+import { getStoredUser, getToken, saveSession, clearSession } from '../services/api';
 
 const AuthContext = createContext(null);
 
 // Global auth state: the logged-in user (customer or admin) + actions.
-// Guests simply have user = null - and per the permission table they have
-// NO cart and cannot order until they register and verify their email.
+// Guests have user = null and per the permission table they have NO cart
+// and cannot order until they register and are verified by an administrator.
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => getStoredUser());
+  const [user, setInternalUser] = useState(() => getStoredUser());
   const [loading, setLoading] = useState(false);
 
-  const refresh = useCallback(async () => {
-    try {
-      const me = await authService.getMe();
-      if (me) setUser(me);
-    } catch { /* token expired/invalid - stay guest */ }
+  const setUser = useCallback((updater) => {
+    setInternalUser((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      if (next) {
+        saveSession(getToken(), next);
+      }
+      return next;
+    });
   }, []);
 
-  useEffect(() => { if (getStoredUser()) refresh(); }, [refresh]);
+  const refresh = useCallback(async () => {
+    const token = getToken();
+    if (!token) {
+      setInternalUser(null);
+      return;
+    }
+    try {
+      const me = await authService.getMe();
+      if (me) {
+        setInternalUser(me);
+        saveSession(token, me);
+      }
+    } catch (err) {
+      // Only clear session if token is genuinely invalid or expired (401/403).
+      // On temporary network errors, preserve the stored user so the customer
+      // does not unexpectedly drop into a guest state.
+      if (err?.status === 401 || err?.status === 403) {
+        clearSession();
+        setInternalUser(null);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (getToken()) {
+      refresh();
+    }
+  }, [refresh]);
 
   const login = useCallback(async (email, password) => {
     setLoading(true);
     try {
-      const { user: u } = await authService.login(email, password);
-      setUser(u);
+      const { user: u, token } = await authService.login(email, password);
+      setInternalUser(u);
+      saveSession(token, u);
       return u;
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // Used by the Verify Email page after a successful OTP check (the service
-  // has already saved the session token).
-  const adoptSession = useCallback((u) => setUser(u), []);
+  const adoptSession = useCallback((u, token) => {
+    if (token) saveSession(token, u);
+    setInternalUser(u);
+  }, []);
 
   const logout = useCallback(async () => {
-    await authService.logout();
-    setUser(null);
+    try {
+      await authService.logout();
+    } catch {
+      /* ignore */
+    }
+    clearSession();
+    setInternalUser(null);
   }, []);
 
+  const role = String(user?.role || '').toLowerCase();
+  const isAdmin = Boolean(user && role === 'admin');
+  const isCustomer = Boolean(user && role === 'customer');
+
   const value = useMemo(() => ({
-    user, loading,
-    isAdmin: user?.role === 'admin',
-    isCustomer: user?.role === 'customer',
-    login, logout, refresh, adoptSession, setUser,
-  }), [user, loading, login, logout, refresh, adoptSession]);
+    user,
+    loading,
+    isAdmin,
+    isCustomer,
+    login,
+    logout,
+    refresh,
+    adoptSession,
+    setUser,
+  }), [user, loading, isAdmin, isCustomer, login, logout, refresh, adoptSession, setUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

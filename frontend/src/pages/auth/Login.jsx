@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import { useToast } from '../../components/common/Toast';
@@ -7,7 +7,7 @@ import { useToast } from '../../components/common/Toast';
 // same form (POST /auth/login). The server returns the account's role and we
 // redirect by role - admin -> /admin, customer -> customer dashboard.
 export default function Login() {
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
@@ -19,9 +19,16 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
 
   const redirectFor = (u) => {
-    if (u.role === 'admin') navigate('/admin');
-    else navigate(location.state?.from || '/customer/dashboard');
+    if (u?.role === 'admin') navigate('/admin', { replace: true });
+    else navigate(location.state?.from || '/customer/dashboard', { replace: true });
   };
+
+  // If already logged in, customer should never see guest login form
+  useEffect(() => {
+    if (user) {
+      redirectFor(user);
+    }
+  }, [user]);
 
   const submit = async (e) => {
     e.preventDefault();

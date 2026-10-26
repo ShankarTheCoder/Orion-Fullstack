@@ -5,17 +5,17 @@ export async function getProducts(params = {}) {
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== '') qs.set(k, v);
   if (!qs.has('limit')) qs.set('limit', '100');
-  const data = await request(`/products?${qs.toString()}`, { auth: false });
+  const data = await request(`/products?${qs.toString()}`);
   return { items: listOf(data).map(normProduct), total: data.total ?? listOf(data).length, page: data.page, pages: data.pages };
 }
 
 export async function getProduct(id) {
-  const data = await request(`/products/${id}`, { auth: false });
+  const data = await request(`/products/${id}`);
   return normProduct(data.data || data);
 }
 
 export async function getCategories() {
-  const data = await request('/categories', { auth: false });
+  const data = await request('/categories');
   return listOf(data).map((c) => ({ ...c, id: c.id ?? c._id }));
 }
 
