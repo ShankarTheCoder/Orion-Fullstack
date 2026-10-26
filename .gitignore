@@ -1,0 +1,13 @@
+# dependencies
+node_modules/
+# env / secrets (only .env.example is committed)
+.env
+*/.env
+# builds
+dist/
+frontend/dist/
+backend/dist/
+# logs / misc
+*.log
+.DS_Store
+coverage/

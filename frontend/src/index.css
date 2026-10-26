@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Minimal custom CSS on top of Tailwind (theme/layout live in Tailwind). */
+html { scroll-behavior: smooth; }
+body { @apply bg-farm-50/40 text-slate-800 antialiased; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
