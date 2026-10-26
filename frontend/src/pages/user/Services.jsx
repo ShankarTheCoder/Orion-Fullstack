@@ -14,7 +14,7 @@ const FAQS = [
   ['Where does Orion deliver?', 'We deliver farm-fresh fruits and vegetables across all sectors and neighborhoods in Meerut, Uttar Pradesh.'],
   ['What are your delivery timings and charges?', 'We offer 3 daily slots: 7–10 AM, 12–3 PM, and 5–8 PM. Delivery is ₹40, and completely FREE on orders above ₹499.'],
   ['Can I pay using Cash on Delivery (COD)?', 'Yes! We support Cash on Delivery as well as instant online card and UPI mock payments.'],
-  ['How do I track my order?', 'Once signed in, go to your dedicated Customer Console → My Orders to see live status tracking from Confirmed to Delivered.'],
+  ['How do I track my order?', 'Once signed in, go to your Customer Account → My Orders to see live status tracking from Confirmed to Delivered.'],
   ['How can I share feedback or contact support?', 'Guest users and customers can submit reviews via the Feedback page or reach our Meerut support team directly through the Contact page.'],
 ];
 

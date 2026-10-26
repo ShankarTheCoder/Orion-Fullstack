@@ -61,12 +61,12 @@ export default function Navbar() {
               <Link
                 to="/customer/dashboard"
                 className="flex items-center gap-1.5 rounded-xl border border-farm-200 bg-farm-50 px-3 py-2 text-xs font-bold text-farm-900 shadow-sm transition hover:bg-farm-100"
-                title="Go to Customer Console"
+                title="Go to Customer Account"
               >
                 <span className="text-sm">👤</span>
                 <span className="max-w-[100px] truncate sm:max-w-none">{user.name?.split(' ')[0]}</span>
                 <span className="hidden rounded-md bg-farm-200 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-farm-800 sm:inline">
-                  Customer Console
+                  Account
                 </span>
               </Link>
               <Link to="/customer/cart" className="rounded-xl bg-farm-600 px-4 py-2 text-center leading-tight text-white shadow-sm hover:bg-farm-700">
@@ -108,7 +108,7 @@ export default function Navbar() {
           {isCustomer && (
             <>
               <span className="mx-1 h-4 w-px bg-slate-200" />
-              <NavLink to="/customer/dashboard" className={linkCls}>📊 Customer Console</NavLink>
+              <NavLink to="/customer/dashboard" className={linkCls}>📊 Customer Account</NavLink>
             </>
           )}
           {isAdmin && <NavLink to="/admin" className={linkCls}>Admin Panel</NavLink>}

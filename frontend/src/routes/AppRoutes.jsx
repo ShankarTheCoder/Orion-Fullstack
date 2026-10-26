@@ -55,7 +55,7 @@ export default function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
       </Route>
 
-      {/* ------- Customer Platform / Console (authenticated) ------- */}
+      {/* ------- Customer Platform / Account (authenticated) ------- */}
       <Route element={<ProtectedRoute><CustomerLayout /></ProtectedRoute>}>
         <Route path="/customer" element={<CustomerDashboard />} />
         <Route path="/customer/dashboard" element={<CustomerDashboard />} />

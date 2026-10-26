@@ -7,10 +7,9 @@ import logo from '../assets/logo-icon.png';
 const itemCls = ({ isActive }) =>
   `block rounded-xl px-4 py-2.5 text-sm font-semibold transition ${isActive ? 'bg-farm-600 text-white shadow-sm' : 'text-farm-100 hover:bg-farm-900/80 hover:text-white'}`;
 
-// Customer Console: the customer's own dedicated platform (sidebar + console top bar).
-// All customer modules (dashboard, shop produce, cart, orders, addresses, profile,
-// feedback, contact, services) open inside their own panel, never falling back to
-// the guest storefront layout.
+// Customer Account Panel: the customer's dedicated platform (sidebar + top bar).
+// All customer modules (dashboard, shop produce, cart, checkout, orders,
+// addresses, profile) open inside their own dedicated panel.
 export default function CustomerLayout() {
   const { user, logout } = useAuth();
   const { cart, count } = useCart();
@@ -32,13 +31,13 @@ export default function CustomerLayout() {
 
   return (
     <div className="flex min-h-screen bg-slate-100 text-slate-800">
-      {/* Left Sidebar (Desktop Console) */}
+      {/* Left Sidebar (Desktop Account Panel) */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-farm-950 p-4 md:flex border-r border-farm-900 shadow-xl">
         <div className="flex items-center gap-2.5 px-2 pt-1 pb-3">
           <img src={logo} alt="Orion" className="h-8 w-8 rounded-lg shadow-sm" />
           <div>
             <p className="text-lg font-extrabold text-white leading-none">Or<span className="text-amber-400">ion</span></p>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-farm-300">Customer Console</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-farm-300">Customer Account</p>
           </div>
         </div>
 
@@ -72,14 +71,14 @@ export default function CustomerLayout() {
         </div>
       </aside>
 
-      {/* Main Console Content */}
+      {/* Main Account Content */}
       <div className="min-w-0 flex-1 flex flex-col">
-        {/* Top Console Bar (Desktop & Mobile) */}
+        {/* Top Header Bar (Desktop & Mobile) */}
         <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 py-3 shadow-xs backdrop-blur sm:px-6">
           <div className="flex items-center gap-2.5">
             <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
             <h2 className="text-sm font-extrabold uppercase tracking-wide text-farm-950 sm:text-base">
-              Customer Console
+              Customer Account
             </h2>
           </div>
 
