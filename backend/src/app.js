@@ -17,10 +17,15 @@ const app = express();
 
 // Protect all routes with Helmet, bypassing strict CSP for Swagger UI web interface
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api/v1/docs') || req.path.startsWith('/api/docs') || req.path === '/docs') {
+  const p = req.path || '';
+  const op = req.originalUrl || '';
+  if (p.includes('/docs') || op.includes('/docs') || p.includes('/swagger') || op.includes('/swagger')) {
     return next();
   }
-  helmet()(req, res, next);
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })(req, res, next);
 });
 
 const Media = require('./models/Media.model');
@@ -74,9 +79,17 @@ app.use('/uploads', (req, res, next) => { res.setHeader('Cross-Origin-Resource-P
   express.static(path.join(__dirname, '..', 'uploads')));
 if (config.NODE_ENV !== 'test') app.use(morgan('dev'));
 
-// Swagger OpenAPI documentation
+// Swagger OpenAPI documentation (uses reliable CDN assets so Vercel serverless never renders blank)
+const SWAGGER_CSS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css';
+const SWAGGER_JS_URLS = [
+  'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.js',
+];
+
 const swaggerUiOptions = {
   customSiteTitle: 'Orion API Docs',
+  customCssUrl: SWAGGER_CSS_URL,
+  customJs: SWAGGER_JS_URLS,
   customCss: `
     .swagger-ui .topbar { display: none; }
     .swagger-ui .info { margin: 20px 0; }
@@ -95,9 +108,17 @@ app.get('/api/v1/docs.json', (req, res) => {
 });
 app.get('/api/docs.json', (req, res) => res.redirect('/api/v1/docs.json'));
 
-app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
-app.get('/api/docs', (req, res) => res.redirect('/api/v1/docs'));
-app.get('/docs', (req, res) => res.redirect('/api/v1/docs'));
+app.use(
+  '/api/v1/docs',
+  (req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+  },
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, swaggerUiOptions)
+);
+app.get('/api/docs', (req, res) => res.redirect('/api/v1/docs/'));
+app.get('/docs', (req, res) => res.redirect('/api/v1/docs/'));
 
 // Rate limiting on API v1 routes
 app.use('/api/v1', rateLimit({
