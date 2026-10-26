@@ -1,11 +1,7 @@
 import { Link } from 'react-router-dom';
-import useAuth from '../../hooks/useAuth';
 import logoIcon from '../../assets/logo-icon.png';
 
 export default function Footer() {
-  const { isCustomer } = useAuth();
-  const prodBase = isCustomer ? '/customer/products' : '/products';
-
   return (
     <footer className="mt-16 bg-farm-950 text-farm-100">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-3">
@@ -16,10 +12,10 @@ export default function Footer() {
         <div>
           <p className="font-bold text-white">Shop</p>
           <ul className="mt-2 space-y-1 text-sm">
-            <li><Link className="hover:text-white" to={`${prodBase}?category=Fruits`}>Fresh Fruits</Link></li>
-            <li><Link className="hover:text-white" to={`${prodBase}?category=Vegetables`}>Fresh Vegetables</Link></li>
-            <li><Link className="hover:text-white" to={`${prodBase}?deal=dealOfWeek`}>Deals of the Week</Link></li>
-            <li><Link className="hover:text-white" to={`${prodBase}?deal=rs30Corner`}>₹30 Corner</Link></li>
+            <li><Link className="hover:text-white" to="/products?category=Fruits">Fresh Fruits</Link></li>
+            <li><Link className="hover:text-white" to="/products?category=Vegetables">Fresh Vegetables</Link></li>
+            <li><Link className="hover:text-white" to="/products?deal=dealOfWeek">Deals of the Week</Link></li>
+            <li><Link className="hover:text-white" to="/products?deal=rs30Corner">₹30 Corner</Link></li>
           </ul>
         </div>
         <div>
@@ -28,7 +24,7 @@ export default function Footer() {
             <li>🚚 Delivery charge ₹40 — FREE above ₹499</li>
             <li>💵 Cash on Delivery & online payment (mock gateway)</li>
             <li>📍 Delivering across Meerut</li>
-            <li><Link className="hover:text-white" to={isCustomer ? "/customer/feedback" : "/feedback"}>Share feedback</Link> · <Link className="hover:text-white" to={isCustomer ? "/customer/contact" : "/contact"}>Contact us</Link></li>
+            <li><Link className="hover:text-white" to="/services">Services & FAQ</Link> · <Link className="hover:text-white" to="/feedback">Share feedback</Link> · <Link className="hover:text-white" to="/contact">Contact us</Link></li>
           </ul>
         </div>
       </div>

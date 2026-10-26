@@ -28,9 +28,6 @@ export default function CustomerLayout() {
     ['/customer/orders', '📦 My Orders'],
     ['/customer/addresses', '📍 My Addresses'],
     ['/customer/profile', '👤 My Profile'],
-    ['/customer/feedback', '💬 Feedback & Reviews'],
-    ['/customer/contact', '✉️ Contact Support'],
-    ['/customer/services', 'ℹ️ Services & FAQ'],
   ];
 
   return (

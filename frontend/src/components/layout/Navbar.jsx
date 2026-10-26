@@ -20,8 +20,7 @@ export default function Navbar() {
 
   const doSearch = (e) => {
     e.preventDefault();
-    const base = isCustomer ? '/customer/products' : '/products';
-    navigate(search.trim() ? `${base}?search=${encodeURIComponent(search.trim())}` : base);
+    navigate(search.trim() ? `/products?search=${encodeURIComponent(search.trim())}` : '/products');
   };
 
   const doLogout = async () => { await logout(); navigate('/'); };
@@ -29,7 +28,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-farm-100 bg-white/95 shadow-sm backdrop-blur">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
-        <Link to={isCustomer ? "/customer/dashboard" : "/"} className="flex shrink-0 items-center gap-2">
+        <Link to="/" className="flex shrink-0 items-center gap-2">
           <img src={logoFull} alt="Orion" className="h-10 w-auto" />
         </Link>
 
@@ -96,11 +95,11 @@ export default function Navbar() {
       {/* Slim links row */}
       <nav className="border-t border-slate-100">
         <div className="no-scrollbar mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-1.5">
-          {!isAdmin && !isCustomer && (
+          {!isAdmin && (
             <>
               <NavLink to="/" className={linkCls}>Home</NavLink>
               <NavLink to="/products" className={linkCls}>Products</NavLink>
-              <NavLink to="/services" className={linkCls}>Services</NavLink>
+              <NavLink to="/services" className={linkCls}>Services & FAQ</NavLink>
               <NavLink to="/about" className={linkCls}>About</NavLink>
               <NavLink to="/contact" className={linkCls}>Contact</NavLink>
               <NavLink to="/feedback" className={linkCls}>Feedback</NavLink>
@@ -108,15 +107,8 @@ export default function Navbar() {
           )}
           {isCustomer && (
             <>
-              <NavLink to="/customer/dashboard" className={linkCls}>📊 Dashboard</NavLink>
-              <NavLink to="/customer/products" className={linkCls}>🥦 Shop Produce</NavLink>
-              <NavLink to="/customer/cart" className={linkCls}>🧺 Cart {count > 0 ? `(${count})` : ''}</NavLink>
-              <NavLink to="/customer/orders" className={linkCls}>📦 Orders</NavLink>
-              <NavLink to="/customer/addresses" className={linkCls}>📍 Addresses</NavLink>
-              <NavLink to="/customer/profile" className={linkCls}>👤 Profile</NavLink>
-              <NavLink to="/customer/feedback" className={linkCls}>💬 Feedback</NavLink>
-              <NavLink to="/customer/contact" className={linkCls}>✉️ Contact</NavLink>
-              <NavLink to="/customer/services" className={linkCls}>ℹ️ Services</NavLink>
+              <span className="mx-1 h-4 w-px bg-slate-200" />
+              <NavLink to="/customer/dashboard" className={linkCls}>📊 Customer Console</NavLink>
             </>
           )}
           {isAdmin && <NavLink to="/admin" className={linkCls}>Admin Panel</NavLink>}
