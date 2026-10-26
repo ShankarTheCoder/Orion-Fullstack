@@ -1476,6 +1476,28 @@ const swaggerDefinition = {
         },
       },
     },
+    '/admin/customers/{id}/verify': {
+      patch: {
+        tags: ['Admin'],
+        summary: 'Verify or unverify customer account from Admin Panel',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        requestBody: {
+          required: false,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { isVerified: { type: 'boolean', default: true } },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Customer verification status updated' },
+        },
+      },
+    },
     '/admin/orders': {
       get: {
         tags: ['Admin'],

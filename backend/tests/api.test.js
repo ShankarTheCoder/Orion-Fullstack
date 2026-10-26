@@ -81,80 +81,49 @@ describe('fixtures + health', () => {
   });
 });
 
-describe('email OTP verification (Resend dev mode)', () => {
-  const newUser = { name: 'OTP Tester', mobile: '9000000011', email: 'otp.tester@test.local', password: 'tester123' };
+describe('customer registration without OTP + admin panel verification', () => {
+  const newUser = { name: 'Customer Tester', mobile: '9000000011', email: 'customer.tester@test.local', password: 'tester123' };
+  let newUserId = null;
 
-  test('register creates an UNVERIFIED user and sends an OTP (dev mode records it)', async () => {
+  test('register creates an unverified customer without sending an OTP', async () => {
     clearSentEmails();
     const res = await api().post('/api/v1/auth/register').send(newUser);
     expect(res.status).toBe(201);
     expect(res.body.user.isEmailVerified).toBe(false);
-    expect(res.body.token).toBeUndefined(); // no token before verification
-    const otp = lastOtpFor(newUser.email);
-    expect(otp).toMatch(/^\d{6}$/);
+    expect(res.body.token).toBeUndefined();
+    newUserId = res.body.user.id;
+    // Verify NO OTP verification email was sent
+    expect(sentEmails.filter((e) => e.type === 'verification')).toHaveLength(0);
   });
 
-  test('login is BLOCKED before verification with the not-verified error', async () => {
+  test('login is BLOCKED before admin verification', async () => {
     const res = await api().post('/api/v1/auth/login').send({ email: newUser.email, password: newUser.password });
     expect(res.status).toBe(403);
-    expect(res.body.message).toMatch(/Email not verified/i);
+    expect(res.body.message).toMatch(/pending verification/i);
   });
 
-  test('wrong OTP is rejected', async () => {
-    const real = lastOtpFor(newUser.email);
-    const wrong = real === '000000' ? '111111' : '000000';
-    const res = await api().post('/api/v1/auth/verify-email').send({ email: newUser.email, otp: wrong });
-    expect(res.status).toBe(400);
-    expect(res.body.message).toMatch(/Invalid OTP/i);
+  test('admin can verify customer via PATCH /admin/customers/:id/verify', async () => {
+    const verifyRes = await asAdmin(api().patch(`/api/v1/admin/customers/${newUserId}/verify`).send({ isVerified: true }));
+    expect(verifyRes.status).toBe(200);
+    expect(verifyRes.body.data.isEmailVerified).toBe(true);
   });
 
-  test('resend-otp inside 60s cooldown returns 429', async () => {
-    const res = await api().post('/api/v1/auth/resend-otp').send({ email: newUser.email });
-    expect(res.status).toBe(429);
-  });
-
-  test('correct OTP verifies the account and returns a JWT', async () => {
-    const otp = lastOtpFor(newUser.email);
-    const res = await api().post('/api/v1/auth/verify-email').send({ email: newUser.email, otp });
-    expect(res.status).toBe(200);
-    expect(res.body.token).toBeTruthy();
-    expect(res.body.user.isEmailVerified).toBe(true);
-  });
-
-  test('after verification, login succeeds', async () => {
+  test('after admin verification, customer can log in successfully', async () => {
     const res = await api().post('/api/v1/auth/login').send({ email: newUser.email, password: newUser.password });
     expect(res.status).toBe(200);
     expect(res.body.token).toBeTruthy();
   });
 
-  test('resend-otp invalidates the old OTP and issues a fresh one', async () => {
-    const user2 = { name: 'Second Tester', mobile: '9000000012', email: 'otp.second@test.local', password: 'tester123' };
-    await api().post('/api/v1/auth/register').send(user2);
-    const firstOtp = lastOtpFor(user2.email);
-    // Simulate the cooldown having passed by backdating last-sent in the DB.
-    const User = require('../src/models/User.model');
-    await User.updateOne({ email: user2.email }, { emailOtpLastSentAt: new Date(Date.now() - 61000) });
-    const resend = await api().post('/api/v1/auth/resend-otp').send({ email: user2.email });
-    expect(resend.status).toBe(200);
-    const secondOtp = lastOtpFor(user2.email);
-    expect(secondOtp).toMatch(/^\d{6}$/);
-    if (secondOtp !== firstOtp) {
-      const oldAttempt = await api().post('/api/v1/auth/verify-email').send({ email: user2.email, otp: firstOtp });
-      expect(oldAttempt.status).toBe(400);
-    }
-    const ok = await api().post('/api/v1/auth/verify-email').send({ email: user2.email, otp: secondOtp });
-    expect(ok.status).toBe(200);
-  });
+  test('admin can unverify customer, blocking login again', async () => {
+    const unverifyRes = await asAdmin(api().patch(`/api/v1/admin/customers/${newUserId}/verify`).send({ isVerified: false }));
+    expect(unverifyRes.status).toBe(200);
+    expect(unverifyRes.body.data.isEmailVerified).toBe(false);
 
-  test('expired OTP is rejected', async () => {
-    const user3 = { name: 'Expiry Tester', mobile: '9000000013', email: 'otp.expiry@test.local', password: 'tester123' };
-    await api().post('/api/v1/auth/register').send(user3);
-    const otp = lastOtpFor(user3.email);
-    const User = require('../src/models/User.model');
-    await User.updateOne({ email: user3.email }, { emailOtpExpiresAt: new Date(Date.now() - 1000) });
-    const res = await api().post('/api/v1/auth/verify-email').send({ email: user3.email, otp });
-    expect(res.status).toBe(400);
-    expect(res.body.message).toMatch(/expired/i);
+    const loginRes = await api().post('/api/v1/auth/login').send({ email: newUser.email, password: newUser.password });
+    expect(loginRes.status).toBe(403);
+
+    // Re-verify for subsequent tests
+    await asAdmin(api().patch(`/api/v1/admin/customers/${newUserId}/verify`).send({ isVerified: true }));
   });
 
   test('register still validates input and rejects duplicates', async () => {

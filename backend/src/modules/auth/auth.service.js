@@ -1,9 +1,9 @@
 // Auth business logic: bcrypt hashing via the User model, JWT issuing, role
-// rules - plus EMAIL OTP VERIFICATION via Resend:
-//   register -> user created UNVERIFIED + 6-digit OTP emailed (hashed at rest)
-//   verify-email -> OTP checked (expiry + max 5 attempts) -> JWT issued
-//   resend-otp -> fresh OTP, 60-second cooldown, old OTP invalidated
-//   login -> REJECTED until the email is verified.
+// rules - customer registration without OTP verification (admin verifies in panel):
+//   register -> user created (isEmailVerified: false) - no OTP generated or sent
+//   admin panel -> admin verifies customer directly in panel (isEmailVerified: true)
+//   login -> REJECTED until verified by admin
+//   forgot-password & reset-password -> 6-digit random OTP for secure password recovery
 // Registration always creates a customer (PDF Section 7); admin accounts are
 // only created by seeding/direct DB access and are seeded verified.
 const crypto = require('crypto');
@@ -46,17 +46,15 @@ async function register({ name, mobile, email, password }) {
     name, mobile, email: normalizedEmail,
     passwordHash: await User.hashPassword(password),
     role: 'customer', // never admin via the public API
-    isEmailVerified: false,
+    isEmailVerified: false, // Admin can verify through the Admin Panel
   });
-  const { devMode, otp } = await issueOtp(user);
-  // No token yet - the client must verify the OTP first.
+
   return {
     status: 201,
     body: {
       success: true,
-      message: 'Registration successful. Please verify the OTP sent to your email.',
+      message: 'Registration successful. Your account is pending admin verification.',
       user: user.toSafeJSON(),
-      ...(devMode ? { devOtp: otp } : {}),
     },
   };
 }
@@ -180,7 +178,7 @@ async function login(email, password, { adminOnly = false } = {}) {
     throw new ApiError(403, 'Your account has been blocked. Please contact support.');
   }
   if (!user.isEmailVerified) {
-    throw new ApiError(403, 'Email not verified. Please verify the OTP sent to your email.');
+    throw new ApiError(403, 'Your account is pending verification by an administrator. Please contact admin or wait for approval.');
   }
   return authResponse(user);
 }

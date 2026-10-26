@@ -9,12 +9,17 @@ const customerStatusRules = [
   body('status').isIn(['active', 'blocked']).withMessage('status must be active or blocked'),
 ];
 
+const customerVerifyRules = [
+  body('isVerified').optional().isBoolean().withMessage('isVerified must be a boolean'),
+];
+
 const createCustomerRules = [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('mobile').matches(/^\d{10}$/).withMessage('Mobile must be a 10-digit number'),
   body('email').isEmail().withMessage('Email is invalid').normalizeEmail(),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   body('status').optional().isIn(['active', 'blocked']).withMessage('status must be active or blocked'),
+  body('isEmailVerified').optional().isBoolean().withMessage('isEmailVerified must be a boolean'),
 ];
 
 const updateCustomerRules = [
@@ -23,7 +28,8 @@ const updateCustomerRules = [
   body('email').optional().isEmail().withMessage('Email is invalid').normalizeEmail(),
   body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   body('status').optional().isIn(['active', 'blocked']).withMessage('status must be active or blocked'),
+  body('isEmailVerified').optional().isBoolean().withMessage('isEmailVerified must be a boolean'),
 ];
 
-module.exports = { orderStatusRules, customerStatusRules, createCustomerRules, updateCustomerRules };
+module.exports = { orderStatusRules, customerStatusRules, customerVerifyRules, createCustomerRules, updateCustomerRules };
 

@@ -19,6 +19,7 @@ router.post('/customers', rules.createCustomerRules, validate, controller.create
 router.get('/customers/:id', controller.customerDetail);
 router.put('/customers/:id', rules.updateCustomerRules, validate, controller.updateCustomer);
 router.patch('/customers/:id/status', rules.customerStatusRules, validate, controller.setCustomerStatus);
+router.patch('/customers/:id/verify', rules.customerVerifyRules, validate, controller.setCustomerVerification);
 router.delete('/customers/:id', controller.deleteCustomer);
 
 // Order management

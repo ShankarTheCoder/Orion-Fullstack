@@ -23,6 +23,12 @@ async function customerDetail(req, res, next) {
 async function setCustomerStatus(req, res, next) {
   try { res.json({ success: true, data: await service.setCustomerStatus(req.user, req.params.id, req.body.status) }); } catch (err) { next(err); }
 }
+async function setCustomerVerification(req, res, next) {
+  try {
+    const isVerified = req.body.isVerified !== undefined ? Boolean(req.body.isVerified) : true;
+    res.json({ success: true, data: await service.setCustomerVerification(req.user, req.params.id, isVerified) });
+  } catch (err) { next(err); }
+}
 async function createCustomer(req, res, next) {
   try { res.status(201).json({ success: true, data: await service.createCustomer(req.body) }); } catch (err) { next(err); }
 }
@@ -85,7 +91,7 @@ async function deleteContact(req, res, next) {
 }
 
 module.exports = {
-  dashboard, listCustomers, customerDetail, setCustomerStatus,
+  dashboard, listCustomers, customerDetail, setCustomerStatus, setCustomerVerification,
   createCustomer, updateCustomer, deleteCustomer,
   listOrders, updateOrderStatus, listPayments, paymentDetail,
   listFeedback, deleteFeedback, listContacts, resolveContact, deleteContact,

@@ -11,12 +11,14 @@ const EMPTY_FORM = {
   mobile: '',
   password: '',
   status: 'active',
+  isEmailVerified: true,
 };
 
 export default function Customers() {
   const toast = useToast();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [verificationFilter, setVerificationFilter] = useState('');
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
@@ -27,8 +29,8 @@ export default function Customers() {
   const [formBusy, setFormBusy] = useState(false);
 
   const { data, loading, refetch } = useFetch(
-    () => adminService.getCustomers({ search, status: statusFilter }),
-    [search, statusFilter]
+    () => adminService.getCustomers({ search, status: statusFilter, verification: verificationFilter }),
+    [search, statusFilter, verificationFilter]
   );
 
   const openCreateModal = () => {
@@ -44,6 +46,7 @@ export default function Customers() {
       mobile: customer.mobile || '',
       password: '',
       status: customer.status || 'active',
+      isEmailVerified: customer.isEmailVerified !== false,
     });
     setFormError('');
     setModalMode(customer);
@@ -82,6 +85,7 @@ export default function Customers() {
           email: form.email,
           mobile: form.mobile,
           status: form.status,
+          isEmailVerified: form.isEmailVerified,
         };
         if (form.password) payload.password = form.password;
         await adminService.updateCustomer(modalMode.id, payload);
@@ -102,6 +106,20 @@ export default function Customers() {
       await adminService.setCustomerStatus(customer.id, next);
       toast.success(`${customer.name} is now ${next}`);
       if (detail?.customer?.id === customer.id) setDetail(null);
+      refetch();
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const toggleVerification = async (customer) => {
+    const next = !customer.isEmailVerified;
+    try {
+      await adminService.setCustomerVerification(customer.id, next);
+      toast.success(`${customer.name} is now ${next ? 'Verified' : 'Unverified (Pending)'}`);
+      if (detail?.customer?.id === customer.id) {
+        setDetail((d) => ({ ...d, customer: { ...d.customer, isEmailVerified: next } }));
+      }
       refetch();
     } catch (err) {
       toast.error(err.message);
@@ -169,10 +187,20 @@ export default function Customers() {
           <option value="active">Active only</option>
           <option value="blocked">Blocked only</option>
         </select>
+        <select
+          value={verificationFilter}
+          onChange={(e) => setVerificationFilter(e.target.value)}
+          aria-label="Filter customers by verification"
+          className="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-farm-500 font-medium"
+        >
+          <option value="">All Verification</option>
+          <option value="verified">Verified only (Approved)</option>
+          <option value="pending">Pending verification only</option>
+        </select>
       </div>
 
       <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-card">
-        <table className="w-full min-w-[760px] text-left text-sm">
+        <table className="w-full min-w-[840px] text-left text-sm">
           <thead>
             <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
               <th className="px-4 py-3">Customer</th>
@@ -180,6 +208,7 @@ export default function Customers() {
               <th className="px-4 py-3">Orders</th>
               <th className="px-4 py-3">Joined</th>
               <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Verification</th>
               <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
@@ -206,12 +235,34 @@ export default function Customers() {
                   </span>
                 </td>
                 <td className="px-4 py-3">
+                  {c.isEmailVerified ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800">
+                      ✓ Verified
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">
+                      ⏳ Pending
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 py-3">
                   <span className="flex flex-wrap items-center gap-1.5">
                     <button
                       onClick={() => view(c)}
                       className="rounded-md border border-farm-300 bg-white px-2.5 py-1 text-xs font-bold text-farm-800 hover:bg-farm-50 transition"
                     >
                       View
+                    </button>
+                    <button
+                      onClick={() => toggleVerification(c)}
+                      className={`rounded-md border px-2.5 py-1 text-xs font-bold transition shadow-xs ${
+                        c.isEmailVerified
+                          ? 'border-slate-300 text-slate-600 hover:bg-slate-50'
+                          : 'border-emerald-500 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                      }`}
+                      title={c.isEmailVerified ? 'Mark as unverified' : 'Verify customer directly'}
+                    >
+                      {c.isEmailVerified ? 'Unverify' : '✓ Verify'}
                     </button>
                     <button
                       onClick={() => openEditModal(c)}
@@ -241,7 +292,7 @@ export default function Customers() {
             ))}
             {!data?.items?.length && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
                   No customers found.
                 </td>
               </tr>
@@ -271,6 +322,35 @@ export default function Customers() {
                 <strong className="text-farm-700">{formatPrice(detail.totalSpent)}</strong> across{' '}
                 {detail.orders.length} recent order(s)
               </p>
+
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-3 border border-slate-200">
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Account Verification</div>
+                  <div className="text-sm font-semibold mt-0.5">
+                    {detail.customer.isEmailVerified ? (
+                      <span className="text-emerald-700 font-bold">✓ Verified by Admin</span>
+                    ) : (
+                      <span className="text-amber-700 font-bold">⏳ Pending Admin Verification</span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={async () => {
+                    const next = !detail.customer.isEmailVerified;
+                    await adminService.setCustomerVerification(detail.customer.id, next);
+                    toast.success(`Customer is now ${next ? 'Verified' : 'Pending'}`);
+                    setDetail({ ...detail, customer: { ...detail.customer, isEmailVerified: next } });
+                    refetch();
+                  }}
+                  className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition shadow-xs ${
+                    detail.customer.isEmailVerified
+                      ? 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                      : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  }`}
+                >
+                  {detail.customer.isEmailVerified ? 'Mark as Pending' : '✓ Verify Customer Now'}
+                </button>
+              </div>
               <h3 className="mt-4 text-xs font-bold uppercase tracking-wider text-slate-400">Recent Orders</h3>
               <ul className="mt-2 divide-y divide-slate-100">
                 {detail.orders.map((o) => (
@@ -350,21 +430,22 @@ export default function Customers() {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-xs font-semibold text-slate-700">
+                  {modalMode === 'create' ? 'Password *' : 'Password (leave blank to keep)'}
+                </label>
+                <input
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  placeholder={modalMode === 'create' ? 'Min 6 characters' : 'Unchanged'}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-farm-500"
+                />
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">
-                    {modalMode === 'create' ? 'Password *' : 'Password (leave blank to keep)'}
-                  </label>
-                  <input
-                    type="password"
-                    value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    placeholder={modalMode === 'create' ? 'Min 6 characters' : 'Unchanged'}
-                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-farm-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700">Status</label>
+                  <label className="block text-xs font-semibold text-slate-700">Account Status</label>
                   <select
                     value={form.status}
                     onChange={(e) => setForm({ ...form, status: e.target.value })}
@@ -372,6 +453,17 @@ export default function Customers() {
                   >
                     <option value="active">Active</option>
                     <option value="blocked">Blocked</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700">Verification Status</label>
+                  <select
+                    value={form.isEmailVerified ? 'true' : 'false'}
+                    onChange={(e) => setForm({ ...form, isEmailVerified: e.target.value === 'true' })}
+                    className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-farm-500 font-medium"
+                  >
+                    <option value="true">Verified ✓ (Can log in)</option>
+                    <option value="false">Pending Verification (Unverified)</option>
                   </select>
                 </div>
               </div>

@@ -26,6 +26,11 @@ export async function setCustomerStatus(id, status) {
   return normUser(data.data || data);
 }
 
+export async function setCustomerVerification(id, isVerified = true) {
+  const data = await request(`/admin/customers/${id}/verify`, { method: 'PATCH', body: { isVerified } });
+  return normUser(data.data || data);
+}
+
 export async function createCustomer(payload) {
   const data = await request('/admin/customers', { method: 'POST', body: payload });
   return normUser(data.data || data);

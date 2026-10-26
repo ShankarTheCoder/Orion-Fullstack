@@ -64,6 +64,8 @@ async function dashboardStats() {
 async function listCustomers(query, { page, limit, skip }) {
   const filter = { role: 'customer' };
   if (query.status) filter.status = query.status;
+  if (query.verification === 'verified') filter.isEmailVerified = true;
+  else if (query.verification === 'pending' || query.verification === 'unverified') filter.isEmailVerified = false;
   if (query.search) {
     filter.$or = [
       { name: { $regex: query.search, $options: 'i' } },
@@ -104,7 +106,19 @@ async function setCustomerStatus(adminUser, customerId, status) {
   return user.toSafeJSON();
 }
 
-async function createCustomer({ name, mobile, email, password, status = 'active' }) {
+// Admin can verify or unverify customers directly from the Admin Panel
+async function setCustomerVerification(adminUser, customerId, isVerified = true) {
+  if (String(adminUser._id) === String(customerId)) {
+    throw new ApiError(400, 'You cannot change the verification status of your own account');
+  }
+  const user = await User.findById(customerId);
+  if (!user || user.role !== 'customer') throw new ApiError(404, 'Customer not found');
+  user.isEmailVerified = Boolean(isVerified);
+  await user.save();
+  return user.toSafeJSON();
+}
+
+async function createCustomer({ name, mobile, email, password, status = 'active', isEmailVerified = true }) {
   const normalizedEmail = email.toLowerCase().trim();
   const existing = await User.findOne({ $or: [{ email: normalizedEmail }, { mobile: mobile.trim() }] });
   if (existing) {
@@ -119,7 +133,7 @@ async function createCustomer({ name, mobile, email, password, status = 'active'
     passwordHash,
     role: 'customer',
     status: status || 'active',
-    isEmailVerified: true,
+    isEmailVerified: isEmailVerified !== undefined ? Boolean(isEmailVerified) : true,
   });
   return user.toSafeJSON();
 }
@@ -149,6 +163,9 @@ async function updateCustomer(adminUser, customerId, data) {
   }
   if (data.name) user.name = data.name.trim();
   if (data.status) user.status = data.status;
+  if (data.isEmailVerified !== undefined) {
+    user.isEmailVerified = Boolean(data.isEmailVerified);
+  }
   if (data.password) {
     user.passwordHash = await User.hashPassword(data.password);
   }
@@ -182,7 +199,7 @@ async function deleteCustomer(adminUser, customerId) {
 }
 
 module.exports = {
-  dashboardStats, listCustomers, getCustomerDetail, setCustomerStatus,
+  dashboardStats, listCustomers, getCustomerDetail, setCustomerStatus, setCustomerVerification,
   createCustomer, updateCustomer, deleteCustomer,
   // re-exported model access for the admin controller's simple list endpoints
   models: { Payment, Feedback, ContactRequest },

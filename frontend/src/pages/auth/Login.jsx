@@ -32,7 +32,9 @@ export default function Login() {
       redirectFor(u);
     } catch (err) {
       setError(err.message);
-      if (/not verified/i.test(err.message)) setNotVerified(true);
+      if (/pending verification|not verified|wait for approval|verification/i.test(err.message)) {
+        setNotVerified(true);
+      }
     } finally { setBusy(false); }
   };
 
@@ -64,10 +66,14 @@ export default function Login() {
           </div>
           {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{error}</p>}
           {notVerified && (
-            <Link to="/verify-email" state={{ email }}
-              className="block rounded-lg border border-farm-300 px-3 py-2 text-center text-sm font-semibold text-farm-800 hover:bg-farm-50">
-              ➜ Verify your email with the OTP
-            </Link>
+            <div className="rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-sm text-amber-900">
+              <div className="flex items-center gap-2 font-bold text-amber-950">
+                <span>⏳</span> Account Pending Admin Verification
+              </div>
+              <p className="mt-1 text-xs text-amber-800 leading-relaxed">
+                Your account is currently awaiting administrator review. An administrator will verify your account from the Admin Panel.
+              </p>
+            </div>
           )}
           <button disabled={busy} className="w-full rounded-lg bg-farm-600 py-2.5 font-semibold text-white hover:bg-farm-700 disabled:opacity-60">
             {busy ? 'Logging in…' : 'Login'}
