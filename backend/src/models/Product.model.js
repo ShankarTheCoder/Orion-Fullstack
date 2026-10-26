@@ -14,7 +14,7 @@ const productSchema = new mongoose.Schema(
     price: { type: Number, required: [true, 'Price is required'], min: [0, 'Price cannot be negative'] },
     unit: { type: String, required: [true, 'Unit is required'], default: 'kg' }, // kg | dozen | piece | bunch | litre
     emoji: { type: String, default: '' },
-    imageUrl: { type: String, default: '' }, // Cloudinary/equivalent URL when uploaded (PDF stack table)
+    imageUrl: { type: String, default: '' }, // Stored in MongoDB (Media collection, served at /uploads/products/<file>)
     description: { type: String, default: '' },
     stock: { type: Number, required: true, default: 0, min: [0, 'Stock cannot be negative'] },
     dealFlags: [{ type: String, enum: DEAL_FLAGS }],
